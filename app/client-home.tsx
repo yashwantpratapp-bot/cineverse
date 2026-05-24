@@ -198,7 +198,14 @@ export default function ClientHome({
         </div>
 
       </div>
+<div className="p-8">
 
+  <div className="bg-zinc-900 rounded-xl p-10 text-center text-2xl font-bold text-gray-400">
+    Advertisement
+  </div>
+<script src="https://pl29540898.effectivecpmnetwork.com/19/6b/5a/196b5a413f0df6891aed375bd42e1450.js"></script>
+
+</div>
       {/* Movies */}
       <div className="p-4 md:p-8">
 
