@@ -64,18 +64,18 @@ export default function MoviePage({
     <main className="bg-black min-h-screen text-white">
 
       {/* Navbar */}
-      <div className="flex items-center justify-between px-4 md:px-8 py-4 bg-black border-b border-zinc-800 sticky top-0 z-50">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between px-4 md:px-8 py-4 bg-black border-b border-zinc-800 sticky top-0 z-50 gap-4">
 
         <Link
           href="/"
-          className="text-3xl font-bold text-red-600"
+          className="text-2xl md:text-3xl font-bold text-red-600"
         >
           CINEVERSE
         </Link>
 
         <Link
           href="/profile"
-          className="bg-zinc-800 px-5 py-2 rounded-lg hover:bg-zinc-700 transition"
+          className="bg-zinc-800 px-5 py-3 rounded-lg hover:bg-zinc-700 transition text-center"
         >
           Profile
         </Link>
@@ -84,7 +84,7 @@ export default function MoviePage({
 
       {/* Banner */}
       <div
-        className="h-[50vh] md:h-[70vh] bg-cover bg-center flex items-end"
+        className="h-[45vh] md:h-[70vh] bg-cover bg-center flex items-end"
         style={{
           backgroundImage: `url(${movie.thumbnail})`,
         }}
@@ -107,7 +107,7 @@ export default function MoviePage({
       {/* Player */}
       <div className="p-4 md:p-10">
 
-        <h2 className="text-3xl font-bold mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold mb-6">
           Watch Movie
         </h2>
 
@@ -145,12 +145,14 @@ export default function MoviePage({
       {/* About */}
       <div className="px-4 md:px-10 pb-14">
 
-        <h2 className="text-3xl font-bold mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold mb-6">
           About Movie
         </h2>
 
         <p className="text-gray-400 leading-8 max-w-4xl">
-          Watch {movie.title} online in HD quality on CINEVERSE 😄🔥
+          Watch {movie.title} full movie online in HD quality.
+          Stream Bollywood, South Indian and Web Series
+          movies on CINEVERSE 😄🔥
         </p>
 
       </div>
@@ -158,11 +160,11 @@ export default function MoviePage({
       {/* Related Movies */}
       <div className="p-4 md:p-10">
 
-        <h2 className="text-3xl font-bold mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold mb-6">
           You May Also Like
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
 
           {relatedMovies.map((item) => (
 
@@ -173,14 +175,17 @@ export default function MoviePage({
             >
 
               <img
-                src={item.thumbnail}
+                src={
+                  item.thumbnail ||
+                  "https://via.placeholder.com/400x600?text=No+Image"
+                }
                 alt={item.title}
                 className="w-full h-72 object-cover"
               />
 
               <div className="p-4">
 
-                <h3 className="text-xl font-semibold">
+                <h3 className="text-lg md:text-xl font-semibold">
                   {item.title}
                 </h3>
 

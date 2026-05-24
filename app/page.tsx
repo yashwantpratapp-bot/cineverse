@@ -5,7 +5,7 @@ export default async function Home() {
 
   const { data: movies } = await supabase
     .from("movies")
-    .select("*");
-
+    .select("*")
+.order("views", { ascending: false });
   return <ClientHome movies={movies || []} />;
 }

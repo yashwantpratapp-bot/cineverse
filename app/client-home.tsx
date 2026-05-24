@@ -12,7 +12,8 @@ export default function ClientHome({
 
   const [search, setSearch] = useState("");
 
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] =
+    useState<any>(null);
 
   const [darkMode, setDarkMode] =
     useState(true);
@@ -46,15 +47,19 @@ export default function ClientHome({
 
   const filteredMovies = movies.filter((movie) => {
 
-    const matchesSearch = movie.title
-      .toLowerCase()
-      .includes(search.toLowerCase());
+    const matchesSearch =
+      movie.title
+        .toLowerCase()
+        .includes(search.toLowerCase());
 
     const matchesCategory =
       selectedCategory === "All" ||
       movie.category === selectedCategory;
 
-    return matchesSearch && matchesCategory;
+    return (
+      matchesSearch &&
+      matchesCategory
+    );
   });
 
   return (
@@ -67,60 +72,58 @@ export default function ClientHome({
     >
 
       {/* Navbar */}
-      <div
-        className={`flex flex-col md:flex-row md:items-center md:justify-between px-4 md:px-8 py-4 sticky top-0 z-50 gap-4 ${
-          darkMode
-            ? "bg-black"
-            : "bg-white border-b"
-        }`}
-      >
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between px-4 md:px-8 py-4 bg-black sticky top-0 z-50 gap-4 border-b border-zinc-800">
 
-        <h1 className="text-3xl font-bold text-red-600">
+        {/* Logo */}
+        <h1 className="text-2xl md:text-3xl font-bold text-red-600 tracking-wide">
           CINEVERSE
         </h1>
 
-        <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
+        {/* Right Side */}
+        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
 
+          {/* Search */}
           <input
             type="text"
             placeholder="Search movies..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={`px-4 py-2 rounded-lg outline-none w-full md:w-72 ${
-              darkMode
-                ? "bg-zinc-900 text-white"
-                : "bg-zinc-200 text-black"
-            }`}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+            className="bg-zinc-900 px-4 py-3 rounded-xl outline-none w-full md:w-72 text-white border border-zinc-700 focus:border-red-600 transition"
           />
 
-          {/* Theme Button */}
+          {/* Theme */}
           <button
             onClick={() =>
               setDarkMode(!darkMode)
             }
-            className={`px-4 py-2 rounded-lg cursor-pointer transition ${
+            className={`px-4 py-3 rounded-xl cursor-pointer transition font-medium ${
               darkMode
-                ? "bg-zinc-800 hover:bg-zinc-700"
-                : "bg-zinc-300 hover:bg-zinc-400"
+                ? "bg-zinc-800 hover:bg-zinc-700 text-white"
+                : "bg-zinc-300 hover:bg-zinc-400 text-black"
             }`}
           >
-            {darkMode ? "☀ Light" : "🌙 Dark"}
+            {darkMode
+              ? "☀ Light"
+              : "🌙 Dark"}
           </button>
 
+          {/* User Buttons */}
           {user ? (
 
-            <div className="flex gap-2">
+            <div className="flex gap-3">
 
               <Link
                 href="/profile"
-                className="bg-zinc-800 px-5 py-2 rounded-lg whitespace-nowrap cursor-pointer hover:bg-zinc-700 transition"
+                className="bg-zinc-800 px-5 py-3 rounded-xl text-center flex-1 hover:bg-zinc-700 transition text-white"
               >
-                Profile
+                👤 Profile
               </Link>
 
               <button
                 onClick={logout}
-                className="bg-red-600 px-5 py-2 rounded-lg whitespace-nowrap cursor-pointer hover:bg-red-700 transition"
+                className="bg-red-600 px-5 py-3 rounded-xl flex-1 hover:bg-red-700 transition text-white"
               >
                 Logout
               </button>
@@ -131,7 +134,7 @@ export default function ClientHome({
 
             <Link
               href="/login"
-              className="bg-red-600 px-5 py-2 rounded-lg whitespace-nowrap cursor-pointer hover:bg-red-700 transition"
+              className="bg-red-600 px-5 py-3 rounded-xl text-center hover:bg-red-700 transition text-white"
             >
               Login
             </Link>
@@ -142,8 +145,8 @@ export default function ClientHome({
 
       </div>
 
-      {/* Category Buttons */}
-      <div className="flex gap-3 px-4 md:px-8 py-4 overflow-x-auto">
+      {/* Categories */}
+      <div className="flex gap-3 px-4 md:px-8 py-5 overflow-x-auto scrollbar-hide">
 
         {[
           "All",
@@ -158,12 +161,12 @@ export default function ClientHome({
             onClick={() =>
               setSelectedCategory(category)
             }
-            className={`px-5 py-2 rounded-lg whitespace-nowrap cursor-pointer transition ${
+            className={`px-5 py-2 rounded-full whitespace-nowrap cursor-pointer transition font-medium ${
               selectedCategory === category
-                ? "bg-red-600"
+                ? "bg-red-600 text-white"
                 : darkMode
-                ? "bg-zinc-800 hover:bg-zinc-700"
-                : "bg-zinc-300 hover:bg-zinc-400"
+                ? "bg-zinc-800 hover:bg-zinc-700 text-white"
+                : "bg-zinc-300 hover:bg-zinc-400 text-black"
             }`}
           >
             {category}
@@ -175,103 +178,159 @@ export default function ClientHome({
 
       {/* Hero */}
       <div
-        className="h-[60vh] md:h-[70vh] bg-cover bg-center flex items-end"
+        className="h-[60vh] md:h-[75vh] bg-cover bg-center flex items-end relative"
         style={{
           backgroundImage:
             "url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c')",
         }}
       >
-        <div className="bg-gradient-to-t from-black w-full p-6 md:p-10">
 
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 text-white">
+        <div className="absolute inset-0 bg-black/50"></div>
+
+        <div className="relative z-10 w-full p-6 md:p-10">
+
+          <span className="bg-red-600 px-4 py-2 rounded-full text-sm font-medium">
+            🔥 Trending Platform
+          </span>
+
+          <h1 className="text-4xl md:text-6xl font-bold mt-5 mb-4 text-white leading-tight">
             WATCH MOVIES ONLINE
           </h1>
 
-          <p className="max-w-2xl text-gray-300 text-base md:text-lg mb-6">
-            Stream Bollywood, South Movies and Web Series online.
+          <p className="max-w-2xl text-gray-300 text-base md:text-lg mb-8 leading-8">
+            Stream Bollywood, South Movies,
+            Anime and Web Series online
+            in HD quality 😄🔥
           </p>
 
-          <button className="bg-red-600 px-8 py-3 rounded-lg text-lg cursor-pointer hover:bg-red-700 transition">
+          <button className="bg-red-600 px-8 py-3 rounded-xl text-lg cursor-pointer hover:bg-red-700 transition text-white font-semibold shadow-lg">
             ▶ Watch Now
           </button>
 
         </div>
 
       </div>
-<div className="p-8">
 
-  <div className="bg-zinc-900 rounded-xl p-10 text-center text-2xl font-bold text-gray-400">
-    Advertisement
-  </div>
-<script src="https://pl29540898.effectivecpmnetwork.com/19/6b/5a/196b5a413f0df6891aed375bd42e1450.js"></script>
-
-</div>
       {/* Movies */}
       <div className="p-4 md:p-8">
 
-        <h2 className="text-3xl font-bold mb-8">
-          Latest Movies
-        </h2>
+        <div className="flex items-center justify-between mb-8">
+
+          <h2 className="text-3xl font-bold">
+            Latest Movies
+          </h2>
+
+          <p className="text-gray-400 text-sm">
+            {filteredMovies.length} Movies
+          </p>
+
+        </div>
 
         {filteredMovies.length === 0 ? (
 
-          <p className="text-gray-400">
-            No movies found 😄
-          </p>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-10 text-center">
+
+            <h2 className="text-2xl font-bold mb-4">
+              No movies found 😄
+            </h2>
+
+            <p className="text-gray-400">
+              Try another search or category.
+            </p>
+
+          </div>
 
         ) : (
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
 
             {filteredMovies.map((movie) => (
 
               <div
                 key={movie.id}
-                className={`rounded-xl overflow-hidden hover:scale-105 transition duration-300 ${
+                className={`rounded-2xl overflow-hidden hover:scale-105 transition duration-300 shadow-lg border ${
                   darkMode
-                    ? "bg-zinc-900"
-                    : "bg-zinc-200"
+                    ? "bg-zinc-900 border-zinc-800"
+                    : "bg-zinc-200 border-zinc-300"
                 }`}
               >
 
-                <img
-                  src={
-                    movie.thumbnail ||
-                    "https://via.placeholder.com/400x600?text=No+Image"
-                  }
-                  alt={movie.title}
-                  className="w-full h-72 object-cover"
-                />
+                {/* Thumbnail */}
+                <div className="relative">
 
+                  <img
+                    src={
+                      movie.thumbnail ||
+                      "https://via.placeholder.com/400x600?text=No+Image"
+                    }
+                    alt={movie.title}
+                    className="w-full h-72 object-cover"
+                  />
+
+                  {/* HD Badge */}
+                  <span className="absolute top-3 right-3 bg-red-600 text-white text-xs px-2 py-1 rounded-md">
+                    HD
+                  </span>
+
+                </div>
+
+                {/* Content */}
                 <div className="p-4">
 
-                  <h3 className="text-xl font-semibold">
+                  <h3 className="text-lg md:text-xl font-semibold line-clamp-1">
                     {movie.title}
                   </h3>
 
                   <p className="text-gray-400 mt-2">
-                    {movie.category}
+                    🎬 {movie.category}
                   </p>
 
-                  <div className="flex gap-2 mt-4">
+                  {/* Views */}
+                  <div className="flex items-center justify-between mt-3">
+
+                    <p className="text-gray-500 text-sm">
+                      👁 {movie.views || 0} views
+                    </p>
+
+                    <div className="text-yellow-400 text-sm">
+                      ⭐ 5.0
+                    </div>
+
+                  </div>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mt-4">
+
+                    <span className="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full">
+                      Trending
+                    </span>
+
+                    <span className="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full">
+                      Fast Stream
+                    </span>
+
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex gap-2 mt-5">
 
                     <Link
                       href={`/movie/${movie.id}`}
-                      className="flex-1 bg-red-600 py-2 rounded-lg text-center cursor-pointer hover:bg-red-700 transition"
+                      className="flex-1 bg-red-600 py-2 rounded-xl text-center cursor-pointer hover:bg-red-700 transition text-white font-medium"
                     >
-                      Watch
+                      ▶ Watch
                     </Link>
 
                     <a
                       href={movie.drive_link}
                       target="_blank"
-                      className={`flex-1 py-2 rounded-lg text-center cursor-pointer transition ${
+                      className={`flex-1 py-2 rounded-xl text-center cursor-pointer transition font-medium ${
                         darkMode
-                          ? "bg-zinc-700 hover:bg-zinc-600"
-                          : "bg-zinc-400 hover:bg-zinc-500"
+                          ? "bg-zinc-700 hover:bg-zinc-600 text-white"
+                          : "bg-zinc-400 hover:bg-zinc-500 text-black"
                       }`}
                     >
-                      Download
+                      ⬇ Download
                     </a>
 
                   </div>
@@ -287,7 +346,8 @@ export default function ClientHome({
         )}
 
       </div>
-      {/* Premium Footer */}
+
+      {/* Footer */}
       <footer
         className={`border-t mt-20 ${
           darkMode
@@ -308,8 +368,10 @@ export default function ClientHome({
               </h1>
 
               <p className="text-gray-400 leading-7">
-                Watch Bollywood, South Movies,
-                Anime and Web Series online 😄🔥
+                Watch Bollywood,
+                South Movies,
+                Anime and Web Series
+                online 😄🔥
               </p>
 
             </div>
@@ -408,7 +470,8 @@ export default function ClientHome({
           <div className="border-t border-zinc-800 mt-12 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
 
             <p className="text-gray-500 text-sm">
-              © 2026 CINEVERSE. All Rights Reserved.
+              © 2026 CINEVERSE.
+              All Rights Reserved.
             </p>
 
             <div className="flex gap-6 text-gray-500 text-sm">
@@ -432,6 +495,7 @@ export default function ClientHome({
         </div>
 
       </footer>
+
     </main>
   );
 }

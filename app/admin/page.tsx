@@ -16,6 +16,9 @@ export default function AdminPage() {
   const [driveLink, setDriveLink] =
     useState("");
 
+  const [movies, setMovies] =
+    useState<any[]>([]);
+
   const [loading, setLoading] =
     useState(true);
 
@@ -35,6 +38,8 @@ export default function AdminPage() {
         "yashwantpratapp@gmail.com"
       ) {
         setAuthorized(true);
+
+        fetchMovies();
       }
 
       setLoading(false);
@@ -44,6 +49,18 @@ export default function AdminPage() {
 
   }, []);
 
+  // Fetch Movies
+  const fetchMovies = async () => {
+
+    const { data } = await supabase
+      .from("movies")
+      .select("*")
+      .order("id", { ascending: false });
+
+    setMovies(data || []);
+  };
+
+  // Add Movie
   const addMovie = async () => {
 
     const { error } = await supabase
@@ -69,10 +86,32 @@ export default function AdminPage() {
       setCategory("");
       setThumbnail("");
       setDriveLink("");
+
+      fetchMovies();
     }
   };
 
-  // Loading Screen
+  // Delete Movie
+  const deleteMovie = async (
+    id: number
+  ) => {
+
+    const confirmDelete =
+      confirm("Delete this movie?");
+
+    if (!confirmDelete) return;
+
+    await supabase
+      .from("movies")
+      .delete()
+      .eq("id", id);
+
+    alert("Movie Deleted 😄");
+
+    fetchMovies();
+  };
+
+  // Loading
   if (loading) {
 
     return (
@@ -114,94 +153,153 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="bg-black min-h-screen text-white flex items-center justify-center px-4 py-10">
+    <main className="bg-black min-h-screen text-white px-4 py-10">
 
-      <div className="bg-zinc-900 p-10 rounded-2xl w-full max-w-2xl border border-zinc-800 shadow-2xl">
+      <div className="max-w-7xl mx-auto">
 
-        {/* Heading */}
-        <div className="text-center mb-10">
+        {/* Admin Form */}
+        <div className="bg-zinc-900 p-10 rounded-2xl border border-zinc-800 shadow-2xl">
 
-          <h1 className="text-5xl font-bold text-red-600 mb-4">
-            CINEVERSE ADMIN
-          </h1>
+          {/* Heading */}
+          <div className="text-center mb-10">
 
-          <p className="text-gray-400">
-            Upload and manage movies 😄🔥
-          </p>
+            <h1 className="text-5xl font-bold text-red-600 mb-4">
+              CINEVERSE ADMIN
+            </h1>
+
+            <p className="text-gray-400">
+              Upload and manage movies 😄🔥
+            </p>
+
+          </div>
+
+          {/* Inputs */}
+          <div className="space-y-6">
+
+            <input
+              type="text"
+              placeholder="Movie Title"
+              value={title}
+              onChange={(e) =>
+                setTitle(e.target.value)
+              }
+              className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
+            />
+
+            {/* Category Dropdown */}
+            <select
+              value={category}
+              onChange={(e) =>
+                setCategory(e.target.value)
+              }
+              className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition cursor-pointer"
+            >
+
+              <option value="">
+                Select Category
+              </option>
+
+              <option value="Bollywood">
+                Bollywood
+              </option>
+
+              <option value="South Movies">
+                South Movies
+              </option>
+
+              <option value="Web Series">
+                Web Series
+              </option>
+
+              <option value="Anime">
+                Anime
+              </option>
+
+            </select>
+
+            <input
+              type="text"
+              placeholder="Thumbnail URL"
+              value={thumbnail}
+              onChange={(e) =>
+                setThumbnail(e.target.value)
+              }
+              className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
+            />
+
+            <input
+              type="text"
+              placeholder="Google Drive Preview Link"
+              value={driveLink}
+              onChange={(e) =>
+                setDriveLink(e.target.value)
+              }
+              className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
+            />
+
+            {/* Button */}
+            <button
+              onClick={addMovie}
+              className="w-full bg-red-600 py-4 rounded-xl text-xl font-semibold cursor-pointer hover:bg-red-700 transition duration-300"
+            >
+              🎬 Publish Movie
+            </button>
+
+          </div>
 
         </div>
 
-        {/* Inputs */}
-        <div className="space-y-6">
+        {/* Uploaded Movies */}
+        <div className="mt-14">
 
-          <input
-            type="text"
-            placeholder="Movie Title"
-            value={title}
-            onChange={(e) =>
-              setTitle(e.target.value)
-            }
-            className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
-          />
+          <h2 className="text-4xl font-bold mb-8">
+            Uploaded Movies
+          </h2>
 
-          {/* Category Dropdown */}
-          <select
-            value={category}
-            onChange={(e) =>
-              setCategory(e.target.value)
-            }
-            className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition cursor-pointer"
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
 
-            <option value="">
-              Select Category
-            </option>
+            {movies.map((movie) => (
 
-            <option value="Bollywood">
-              Bollywood
-            </option>
+              <div
+                key={movie.id}
+                className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 hover:scale-105 transition duration-300"
+              >
 
-            <option value="South Movies">
-              South Movies
-            </option>
+                <img
+                  src={
+                    movie.thumbnail ||
+                    "https://via.placeholder.com/400x600?text=No+Image"
+                  }
+                  alt={movie.title}
+                  className="w-full h-72 object-cover"
+                />
 
-            <option value="Web Series">
-              Web Series
-            </option>
+                <div className="p-4">
 
-            <option value="Anime">
-              Anime
-            </option>
+                  <h3 className="text-xl font-bold">
+                    {movie.title}
+                  </h3>
 
-          </select>
+                  <p className="text-gray-400 mt-2">
+                    {movie.category}
+                  </p>
 
-          <input
-            type="text"
-            placeholder="Thumbnail URL"
-            value={thumbnail}
-            onChange={(e) =>
-              setThumbnail(e.target.value)
-            }
-            className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
-          />
+                  <button
+                    onClick={() =>
+                      deleteMovie(movie.id)
+                    }
+                    className="mt-4 w-full bg-red-600 py-3 rounded-xl hover:bg-red-700 transition cursor-pointer"
+                  >
+                    🗑 Delete Movie
+                  </button>
 
-          <input
-            type="text"
-            placeholder="Google Drive Preview Link"
-            value={driveLink}
-            onChange={(e) =>
-              setDriveLink(e.target.value)
-            }
-            className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
-          />
+                </div>
 
-          {/* Button */}
-          <button
-            onClick={addMovie}
-            className="w-full bg-red-600 py-4 rounded-xl text-xl font-semibold cursor-pointer hover:bg-red-700 transition duration-300"
-          >
-            🎬 Publish Movie
-          </button>
+              </div>
+
+            ))}
+
+          </div>
 
         </div>
 
