@@ -1,22 +1,24 @@
-import dynamic from "next/dynamic";
+import ClientHome from "./client-home";
 import { supabase } from "@/lib/supabase";
-
-const ClientHome = dynamic(
-  () => import("./client-home"),
-  {
-    ssr: false,
-  }
-);
 
 export default async function Home() {
 
-  const { data: movies } =
+  const { data: movies, error } =
     await supabase
       .from("movies")
       .select("*")
       .order("views", {
         ascending: false,
       });
+
+  if (error) {
+
+    return (
+      <main className="bg-black text-white min-h-screen flex items-center justify-center">
+        Failed to load movies 😭
+      </main>
+    );
+  }
 
   return (
     <ClientHome movies={movies || []} />
