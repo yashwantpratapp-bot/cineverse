@@ -5,7 +5,8 @@ import { supabase } from "@/lib/supabase";
 
 export default function AdminPage() {
 
-  const [title, setTitle] = useState("");
+  const [title, setTitle] =
+    useState("");
 
   const [category, setCategory] =
     useState("");
@@ -25,6 +26,16 @@ export default function AdminPage() {
   const [authorized, setAuthorized] =
     useState(false);
 
+  // Web Series
+  const [isSeries, setIsSeries] =
+    useState(false);
+
+  const [season, setSeason] =
+    useState("");
+
+  const [episode, setEpisode] =
+    useState("");
+
   useEffect(() => {
 
     const checkAdmin = async () => {
@@ -37,6 +48,7 @@ export default function AdminPage() {
         user?.email ===
         "yashwantpratapp@gmail.com"
       ) {
+
         setAuthorized(true);
 
         fetchMovies();
@@ -52,10 +64,13 @@ export default function AdminPage() {
   // Fetch Movies
   const fetchMovies = async () => {
 
-    const { data } = await supabase
-      .from("movies")
-      .select("*")
-      .order("id", { ascending: false });
+    const { data } =
+      await supabase
+        .from("movies")
+        .select("*")
+        .order("id", {
+          ascending: false,
+        });
 
     setMovies(data || []);
   };
@@ -63,16 +78,36 @@ export default function AdminPage() {
   // Add Movie
   const addMovie = async () => {
 
-    const { error } = await supabase
-      .from("movies")
-      .insert([
-        {
-          title,
-          category,
-          thumbnail,
-          drive_link: driveLink,
-        },
-      ]);
+    if (
+      !title ||
+      !category ||
+      !thumbnail ||
+      !driveLink
+    ) {
+
+      alert(
+        "Fill all fields"
+      );
+
+      return;
+    }
+
+    const finalTitle =
+      isSeries
+        ? `${title} - Season ${season} Episode ${episode}`
+        : title;
+
+    const { error } =
+      await supabase
+        .from("movies")
+        .insert([
+          {
+            title: finalTitle,
+            category,
+            thumbnail,
+            drive_link: driveLink,
+          },
+        ]);
 
     if (error) {
 
@@ -80,12 +115,15 @@ export default function AdminPage() {
 
     } else {
 
-      alert("Movie Added 😄🔥");
+      alert("Movie Added");
 
       setTitle("");
       setCategory("");
       setThumbnail("");
       setDriveLink("");
+      setSeason("");
+      setEpisode("");
+      setIsSeries(false);
 
       fetchMovies();
     }
@@ -97,16 +135,19 @@ export default function AdminPage() {
   ) => {
 
     const confirmDelete =
-      confirm("Delete this movie?");
+      confirm(
+        "Delete this movie?"
+      );
 
-    if (!confirmDelete) return;
+    if (!confirmDelete)
+      return;
 
     await supabase
       .from("movies")
       .delete()
       .eq("id", id);
 
-    alert("Movie Deleted 😄");
+    alert("Movie Deleted");
 
     fetchMovies();
   };
@@ -143,7 +184,7 @@ export default function AdminPage() {
 
           <p className="text-gray-400 leading-7">
             You are not authorized
-            to access the admin panel 😄
+            to access admin panel
           </p>
 
         </div>
@@ -157,7 +198,7 @@ export default function AdminPage() {
 
       <div className="max-w-7xl mx-auto">
 
-        {/* Admin Form */}
+        {/* Form */}
         <div className="bg-zinc-900 p-10 rounded-2xl border border-zinc-800 shadow-2xl">
 
           {/* Heading */}
@@ -168,7 +209,7 @@ export default function AdminPage() {
             </h1>
 
             <p className="text-gray-400">
-              Upload and manage movies 😄🔥
+              Upload and manage movies
             </p>
 
           </div>
@@ -176,21 +217,26 @@ export default function AdminPage() {
           {/* Inputs */}
           <div className="space-y-6">
 
+            {/* Movie Name */}
             <input
               type="text"
-              placeholder="Movie Title"
+              placeholder="Movie / Series Title"
               value={title}
               onChange={(e) =>
-                setTitle(e.target.value)
+                setTitle(
+                  e.target.value
+                )
               }
               className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
             />
 
-            {/* Category Dropdown */}
+            {/* Category */}
             <select
               value={category}
               onChange={(e) =>
-                setCategory(e.target.value)
+                setCategory(
+                  e.target.value
+                )
               }
               className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition cursor-pointer"
             >
@@ -217,32 +263,91 @@ export default function AdminPage() {
 
             </select>
 
+            {/* Web Series Toggle */}
+            <div className="flex items-center gap-4">
+
+              <input
+                type="checkbox"
+                checked={isSeries}
+                onChange={(e) =>
+                  setIsSeries(
+                    e.target.checked
+                  )
+                }
+                className="w-5 h-5"
+              />
+
+              <p className="text-gray-300">
+                This is a Web Series
+              </p>
+
+            </div>
+
+            {/* Season Episode */}
+            {isSeries && (
+
+              <div className="grid grid-cols-2 gap-4">
+
+                <input
+                  type="text"
+                  placeholder="Season"
+                  value={season}
+                  onChange={(e) =>
+                    setSeason(
+                      e.target.value
+                    )
+                  }
+                  className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
+                />
+
+                <input
+                  type="text"
+                  placeholder="Episode"
+                  value={episode}
+                  onChange={(e) =>
+                    setEpisode(
+                      e.target.value
+                    )
+                  }
+                  className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
+                />
+
+              </div>
+
+            )}
+
+            {/* Thumbnail */}
             <input
               type="text"
               placeholder="Thumbnail URL"
               value={thumbnail}
               onChange={(e) =>
-                setThumbnail(e.target.value)
+                setThumbnail(
+                  e.target.value
+                )
               }
               className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
             />
 
+            {/* Drive Link */}
             <input
               type="text"
-              placeholder="Google Drive Preview Link"
+              placeholder="Movie Link / YouTube Embed / Drive Preview"
               value={driveLink}
               onChange={(e) =>
-                setDriveLink(e.target.value)
+                setDriveLink(
+                  e.target.value
+                )
               }
               className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
             />
 
-            {/* Button */}
+            {/* Publish */}
             <button
               onClick={addMovie}
               className="w-full bg-red-600 py-4 rounded-xl text-xl font-semibold cursor-pointer hover:bg-red-700 transition duration-300"
             >
-              🎬 Publish Movie
+              🎬 Publish
             </button>
 
           </div>
@@ -258,46 +363,56 @@ export default function AdminPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
 
-            {movies.map((movie) => (
+            {movies.map(
+              (movie) => (
 
-              <div
-                key={movie.id}
-                className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 hover:scale-105 transition duration-300"
-              >
+                <div
+                  key={movie.id}
+                  className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 hover:scale-105 transition duration-300"
+                >
 
-                <img
-                  src={
-                    movie.thumbnail ||
-                    "https://via.placeholder.com/400x600?text=No+Image"
-                  }
-                  alt={movie.title}
-                  className="w-full h-72 object-cover"
-                />
-
-                <div className="p-4">
-
-                  <h3 className="text-xl font-bold">
-                    {movie.title}
-                  </h3>
-
-                  <p className="text-gray-400 mt-2">
-                    {movie.category}
-                  </p>
-
-                  <button
-                    onClick={() =>
-                      deleteMovie(movie.id)
+                  <img
+                    src={
+                      movie.thumbnail ||
+                      "https://via.placeholder.com/400x600?text=No+Image"
                     }
-                    className="mt-4 w-full bg-red-600 py-3 rounded-xl hover:bg-red-700 transition cursor-pointer"
-                  >
-                    🗑 Delete Movie
-                  </button>
+                    alt={
+                      movie.title
+                    }
+                    className="w-full h-72 object-cover"
+                  />
+
+                  <div className="p-4">
+
+                    <h3 className="text-xl font-bold line-clamp-2">
+                      {
+                        movie.title
+                      }
+                    </h3>
+
+                    <p className="text-gray-400 mt-2">
+                      {
+                        movie.category
+                      }
+                    </p>
+
+                    <button
+                      onClick={() =>
+                        deleteMovie(
+                          movie.id
+                        )
+                      }
+                      className="mt-4 w-full bg-red-600 py-3 rounded-xl hover:bg-red-700 transition cursor-pointer"
+                    >
+                      🗑 Delete
+                    </button>
+
+                  </div>
 
                 </div>
 
-              </div>
-
-            ))}
+              )
+            )}
 
           </div>
 

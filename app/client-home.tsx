@@ -10,7 +10,8 @@ export default function ClientHome({
   movies: any[];
 }) {
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] =
+    useState("");
 
   const [user, setUser] =
     useState<any>(null);
@@ -18,8 +19,13 @@ export default function ClientHome({
   const [darkMode, setDarkMode] =
     useState(true);
 
-  const [selectedCategory, setSelectedCategory] =
-    useState("All");
+  const [
+    selectedCategory,
+    setSelectedCategory,
+  ] = useState("All");
+
+  const [showMenu, setShowMenu] =
+    useState(false);
 
   useEffect(() => {
 
@@ -40,27 +46,32 @@ export default function ClientHome({
 
     await supabase.auth.signOut();
 
-    alert("Logged out 😄");
+    alert("Logged out");
 
     window.location.reload();
   };
 
-  const filteredMovies = movies.filter((movie) => {
+  const filteredMovies =
+    movies.filter((movie) => {
 
-    const matchesSearch =
-      movie.title
-        .toLowerCase()
-        .includes(search.toLowerCase());
+      const matchesSearch =
+        movie.title
+          .toLowerCase()
+          .includes(
+            search.toLowerCase()
+          );
 
-    const matchesCategory =
-      selectedCategory === "All" ||
-      movie.category === selectedCategory;
+      const matchesCategory =
+        selectedCategory ===
+          "All" ||
+        movie.category ===
+          selectedCategory;
 
-    return (
-      matchesSearch &&
-      matchesCategory
-    );
-  });
+      return (
+        matchesSearch &&
+        matchesCategory
+      );
+    });
 
   return (
     <main
@@ -79,7 +90,7 @@ export default function ClientHome({
           CINEVERSE
         </h1>
 
-        {/* Right Side */}
+        {/* Right */}
         <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
 
           {/* Search */}
@@ -88,7 +99,9 @@ export default function ClientHome({
             placeholder="Search movies..."
             value={search}
             onChange={(e) =>
-              setSearch(e.target.value)
+              setSearch(
+                e.target.value
+              )
             }
             className="bg-zinc-900 px-4 py-3 rounded-xl outline-none w-full md:w-72 text-white border border-zinc-700 focus:border-red-600 transition"
           />
@@ -96,7 +109,9 @@ export default function ClientHome({
           {/* Theme */}
           <button
             onClick={() =>
-              setDarkMode(!darkMode)
+              setDarkMode(
+                !darkMode
+              )
             }
             className={`px-4 py-3 rounded-xl cursor-pointer transition font-medium ${
               darkMode
@@ -109,24 +124,89 @@ export default function ClientHome({
               : "🌙 Dark"}
           </button>
 
-          {/* User Buttons */}
+          {/* User */}
           {user ? (
 
-            <div className="flex gap-3">
-
-              <Link
-                href="/profile"
-                className="bg-zinc-800 px-5 py-3 rounded-xl text-center flex-1 hover:bg-zinc-700 transition text-white"
-              >
-                👤 Profile
-              </Link>
+            <div className="relative">
 
               <button
-                onClick={logout}
-                className="bg-red-600 px-5 py-3 rounded-xl flex-1 hover:bg-red-700 transition text-white"
+                onClick={() =>
+                  setShowMenu(
+                    !showMenu
+                  )
+                }
+                className="flex items-center gap-3 bg-zinc-900 px-4 py-2 rounded-xl border border-zinc-700 hover:bg-zinc-800 transition"
               >
-                Logout
+
+                <img
+                  src={
+                    user
+                      ?.user_metadata
+                      ?.avatar_url ||
+                    "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                  }
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full"
+                />
+
+                <span className="hidden md:block font-medium">
+                  {user
+                    ?.user_metadata
+                    ?.full_name ||
+                    "Profile"}
+                </span>
+
               </button>
+
+              {showMenu && (
+
+                <div className="absolute right-0 mt-3 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-64 overflow-hidden z-50">
+
+                  <Link
+                    href="/profile"
+                    className="block px-6 py-4 hover:bg-zinc-800 transition"
+                  >
+                    👤 My Profile
+                  </Link>
+
+                  <Link
+                    href="/profile"
+                    className="block px-6 py-4 hover:bg-zinc-800 transition"
+                  >
+                    🕒 Watch History
+                  </Link>
+
+                  <Link
+                    href="/profile"
+                    className="block px-6 py-4 hover:bg-zinc-800 transition"
+                  >
+                    ❤️ Watchlist
+                  </Link>
+
+                  <Link
+                    href="/profile"
+                    className="block px-6 py-4 hover:bg-zinc-800 transition"
+                  >
+                    👍 Liked Movies
+                  </Link>
+
+                  <Link
+                    href="/settings"
+                    className="block px-6 py-4 hover:bg-zinc-800 transition"
+                  >
+                    ⚙ Settings
+                  </Link>
+
+                  <button
+                    onClick={logout}
+                    className="w-full text-left px-6 py-4 hover:bg-red-600 transition"
+                  >
+                    🚪 Logout
+                  </button>
+
+                </div>
+
+              )}
 
             </div>
 
@@ -159,10 +239,13 @@ export default function ClientHome({
           <button
             key={category}
             onClick={() =>
-              setSelectedCategory(category)
+              setSelectedCategory(
+                category
+              )
             }
             className={`px-5 py-2 rounded-full whitespace-nowrap cursor-pointer transition font-medium ${
-              selectedCategory === category
+              selectedCategory ===
+              category
                 ? "bg-red-600 text-white"
                 : darkMode
                 ? "bg-zinc-800 hover:bg-zinc-700 text-white"
@@ -198,9 +281,10 @@ export default function ClientHome({
           </h1>
 
           <p className="max-w-2xl text-gray-300 text-base md:text-lg mb-8 leading-8">
-            Stream Bollywood, South Movies,
-            Anime and Web Series online
-            in HD quality 😄🔥
+            Stream Bollywood,
+            South Movies,
+            Anime and Web Series
+            online in HD quality
           </p>
 
           <button className="bg-red-600 px-8 py-3 rounded-xl text-lg cursor-pointer hover:bg-red-700 transition text-white font-semibold shadow-lg">
@@ -221,21 +305,26 @@ export default function ClientHome({
           </h2>
 
           <p className="text-gray-400 text-sm">
-            {filteredMovies.length} Movies
+            {
+              filteredMovies.length
+            }{" "}
+            Movies
           </p>
 
         </div>
 
-        {filteredMovies.length === 0 ? (
+        {filteredMovies.length ===
+        0 ? (
 
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-10 text-center">
 
             <h2 className="text-2xl font-bold mb-4">
-              No movies found 😄
+              No movies found
             </h2>
 
             <p className="text-gray-400">
-              Try another search or category.
+              Try another search
+              or category.
             </p>
 
           </div>
@@ -244,102 +333,110 @@ export default function ClientHome({
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
 
-            {filteredMovies.map((movie) => (
+            {filteredMovies.map(
+              (movie) => (
 
-              <div
-                key={movie.id}
-                className={`rounded-2xl overflow-hidden hover:scale-105 transition duration-300 shadow-lg border ${
-                  darkMode
-                    ? "bg-zinc-900 border-zinc-800"
-                    : "bg-zinc-200 border-zinc-300"
-                }`}
-              >
+                <div
+                  key={movie.id}
+                  className={`rounded-2xl overflow-hidden hover:scale-105 transition duration-300 shadow-lg border ${
+                    darkMode
+                      ? "bg-zinc-900 border-zinc-800"
+                      : "bg-zinc-200 border-zinc-300"
+                  }`}
+                >
 
-                {/* Thumbnail */}
-                <div className="relative">
+                  {/* Thumbnail */}
+                  <div className="relative">
 
-                  <img
-                    src={
-                      movie.thumbnail ||
-                      "https://via.placeholder.com/400x600?text=No+Image"
-                    }
-                    alt={movie.title}
-                    className="w-full h-72 object-cover"
-                  />
+                    <img
+                      src={
+                        movie.thumbnail ||
+                        "https://via.placeholder.com/400x600?text=No+Image"
+                      }
+                      alt={
+                        movie.title
+                      }
+                      className="w-full h-72 object-cover"
+                    />
 
-                  {/* HD Badge */}
-                  <span className="absolute top-3 right-3 bg-red-600 text-white text-xs px-2 py-1 rounded-md">
-                    HD
-                  </span>
+                    <span className="absolute top-3 right-3 bg-red-600 text-white text-xs px-2 py-1 rounded-md">
+                      HD
+                    </span>
 
-                </div>
+                  </div>
 
-                {/* Content */}
-                <div className="p-4">
+                  {/* Content */}
+                  <div className="p-4">
 
-                  <h3 className="text-lg md:text-xl font-semibold line-clamp-1">
-                    {movie.title}
-                  </h3>
+                    <h3 className="text-lg md:text-xl font-semibold line-clamp-1">
+                      {movie.title}
+                    </h3>
 
-                  <p className="text-gray-400 mt-2">
-                    🎬 {movie.category}
-                  </p>
-
-                  {/* Views */}
-                  <div className="flex items-center justify-between mt-3">
-
-                    <p className="text-gray-500 text-sm">
-                      👁 {movie.views || 0} views
+                    <p className="text-gray-400 mt-2">
+                      🎬{" "}
+                      {
+                        movie.category
+                      }
                     </p>
 
-                    <div className="text-yellow-400 text-sm">
-                      ⭐ 5.0
+                    <div className="flex items-center justify-between mt-3">
+
+                      <p className="text-gray-500 text-sm">
+                        👁{" "}
+                        {movie.views ||
+                          0}{" "}
+                        views
+                      </p>
+
+                      <div className="text-yellow-400 text-sm">
+                        ⭐ 5.0
+                      </div>
+
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mt-4">
+
+                      <span className="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full">
+                        Trending
+                      </span>
+
+                      <span className="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full">
+                        Fast Stream
+                      </span>
+
+                    </div>
+
+                    <div className="flex gap-2 mt-5">
+
+                      <Link
+                        href={`/movie/${movie.id}`}
+                        className="flex-1 bg-red-600 py-2 rounded-xl text-center cursor-pointer hover:bg-red-700 transition text-white font-medium"
+                      >
+                        ▶ Watch
+                      </Link>
+
+                      <a
+                        href={
+                          movie.drive_link
+                        }
+                        target="_blank"
+                        className={`flex-1 py-2 rounded-xl text-center cursor-pointer transition font-medium ${
+                          darkMode
+                            ? "bg-zinc-700 hover:bg-zinc-600 text-white"
+                            : "bg-zinc-400 hover:bg-zinc-500 text-black"
+                        }`}
+                      >
+                        ⬇ Download
+                      </a>
+
                     </div>
 
                   </div>
 
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mt-4">
-
-                    <span className="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full">
-                      Trending
-                    </span>
-
-                    <span className="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full">
-                      Fast Stream
-                    </span>
-
-                  </div>
-
-                  {/* Buttons */}
-                  <div className="flex gap-2 mt-5">
-
-                    <Link
-                      href={`/movie/${movie.id}`}
-                      className="flex-1 bg-red-600 py-2 rounded-xl text-center cursor-pointer hover:bg-red-700 transition text-white font-medium"
-                    >
-                      ▶ Watch
-                    </Link>
-
-                    <a
-                      href={movie.drive_link}
-                      target="_blank"
-                      className={`flex-1 py-2 rounded-xl text-center cursor-pointer transition font-medium ${
-                        darkMode
-                          ? "bg-zinc-700 hover:bg-zinc-600 text-white"
-                          : "bg-zinc-400 hover:bg-zinc-500 text-black"
-                      }`}
-                    >
-                      ⬇ Download
-                    </a>
-
-                  </div>
-
                 </div>
 
-              </div>
-
-            ))}
+              )
+            )}
 
           </div>
 
@@ -371,7 +468,7 @@ export default function ClientHome({
                 Watch Bollywood,
                 South Movies,
                 Anime and Web Series
-                online 😄🔥
+                online
               </p>
 
             </div>
