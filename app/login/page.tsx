@@ -77,8 +77,8 @@ export default function LoginPage() {
       await supabase.auth.resetPasswordForEmail(
         email,
         {
-          redirectTo:
-            "https://cineverse-vima.vercel.app/login",
+         redirectTo:
+"https://cineverse-vima.vercel.app/reset-password"
         }
       );
 
