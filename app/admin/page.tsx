@@ -20,16 +20,26 @@ export default function AdminPage() {
   const [movies, setMovies] =
     useState<any[]>([]);
 
+  const [series, setSeries] =
+    useState<any[]>([]);
+
+  const [selectedSeries, setSelectedSeries] =
+    useState("");
+
+  const [seriesTitle, setSeriesTitle] =
+    useState("");
+
   const [loading, setLoading] =
     useState(true);
 
   const [authorized, setAuthorized] =
     useState(false);
 
-  // Web Series
-  const [isSeries, setIsSeries] =
-    useState(false);
+  // EDIT MODE
+  const [editId, setEditId] =
+    useState<number | null>(null);
 
+  // SERIES
   const [season, setSeason] =
     useState("");
 
@@ -42,7 +52,8 @@ export default function AdminPage() {
 
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } =
+        await supabase.auth.getUser();
 
       if (
         user?.email ===
@@ -51,7 +62,9 @@ export default function AdminPage() {
 
         setAuthorized(true);
 
-        fetchMovies();
+        await fetchMovies();
+
+        await fetchSeries();
       }
 
       setLoading(false);
@@ -61,10 +74,10 @@ export default function AdminPage() {
 
   }, []);
 
-  // Fetch Movies
+  // FETCH MOVIES
   const fetchMovies = async () => {
 
-    const { data } =
+    const { data, error } =
       await supabase
         .from("movies")
         .select("*")
@@ -72,14 +85,158 @@ export default function AdminPage() {
           ascending: false,
         });
 
+    if (error) {
+
+      console.log(error);
+
+      return;
+    }
+
     setMovies(data || []);
   };
 
-  // Add Movie
+  // FETCH SERIES
+  const fetchSeries = async () => {
+
+    const { data, error } =
+      await supabase
+        .from("series")
+        .select("*")
+        .order("title", {
+          ascending: true,
+        });
+
+    console.log("SERIES DATA:", data);
+
+    console.log("SERIES ERROR:", error);
+
+    if (error) {
+
+      console.log(error);
+
+      return;
+    }
+
+    setSeries(data || []);
+  };
+
+  // ADD SERIES
+  const addSeries = async () => {
+
+    if (
+      !seriesTitle ||
+      !thumbnail ||
+      !category
+    ) {
+
+      alert(
+        "Fill all fields"
+      );
+
+      return;
+    }
+
+    const { data, error } =
+      await supabase
+        .from("series")
+        .insert([
+          {
+            title:
+              seriesTitle,
+            thumbnail,
+            category,
+          },
+        ])
+        .select();
+
+    console.log(data);
+
+    console.log(error);
+
+    if (error) {
+
+      alert(error.message);
+
+      return;
+    }
+
+    alert(
+      "Series Added"
+    );
+
+    setSelectedSeries(
+      String(data[0].id)
+    );
+
+    setSeriesTitle("");
+
+    setSeason("");
+
+    setEpisode("");
+
+    await fetchSeries();
+  };
+
+  // EDIT MOVIE
+  const editMovie = (
+    movie: any
+  ) => {
+
+    setEditId(movie.id);
+
+    setTitle(movie.title);
+
+    setCategory(movie.category);
+
+    setThumbnail(
+      movie.thumbnail
+    );
+
+    setDriveLink(
+      movie.drive_link
+    );
+
+    setSeason(
+      movie.season || ""
+    );
+
+    setEpisode(
+      movie.episode || ""
+    );
+
+    setSelectedSeries(
+      movie.series_id
+        ? String(
+            movie.series_id
+          )
+        : ""
+    );
+  };
+
+  // RESET
+  const resetForm = () => {
+
+    setEditId(null);
+
+    setTitle("");
+
+    setCategory("");
+
+    setThumbnail("");
+
+    setDriveLink("");
+
+    setSeason("");
+
+    setEpisode("");
+
+    setSelectedSeries("");
+  };
+
+  // ADD / UPDATE
   const addMovie = async () => {
 
     if (
-      !title ||
       !category ||
       !thumbnail ||
       !driveLink
@@ -92,20 +249,132 @@ export default function AdminPage() {
       return;
     }
 
-    const finalTitle =
-      isSeries
-        ? `${title} - Season ${season} Episode ${episode}`
-        : title;
+    let finalTitle =
+      title;
 
+    // SERIES MODE
+    if (
+      selectedSeries
+    ) {
+
+      if (
+        !season ||
+        !episode
+      ) {
+
+        alert(
+          "Add season and episode"
+        );
+
+        return;
+      }
+
+      const selected =
+        series.find(
+          (item) =>
+            Number(item.id) ===
+            Number(
+              selectedSeries
+            )
+        );
+
+      if (!selected) {
+
+        alert(
+          "Series not found"
+        );
+
+        return;
+      }
+
+      finalTitle =
+        `${selected.title} - Season ${season} Episode ${episode}`;
+    }
+
+    // NORMAL MOVIE
+    if (
+      !selectedSeries &&
+      !title
+    ) {
+
+      alert(
+        "Enter movie title"
+      );
+
+      return;
+    }
+
+    // UPDATE
+    if (editId) {
+
+      const { error } =
+        await supabase
+          .from("movies")
+          .update({
+            title:
+              finalTitle,
+            category,
+            thumbnail,
+            drive_link:
+              driveLink,
+            season:
+              season || null,
+            episode:
+              episode || null,
+            series_id:
+              selectedSeries
+                ? Number(
+                    selectedSeries
+                  )
+                : null,
+          })
+          .eq(
+            "id",
+            editId
+          );
+
+      if (error) {
+
+        alert(
+          error.message
+        );
+
+        return;
+      }
+
+      alert(
+        "Movie Updated"
+      );
+
+      resetForm();
+
+      fetchMovies();
+
+      return;
+    }
+
+    // ADD
     const { error } =
       await supabase
         .from("movies")
         .insert([
           {
-            title: finalTitle,
+            title:
+              finalTitle,
             category,
             thumbnail,
-            drive_link: driveLink,
+            drive_link:
+              driveLink,
+            season:
+              season || null,
+            episode:
+              episode || null,
+            series_id:
+              selectedSeries
+                ? Number(
+                    selectedSeries
+                  )
+                : null,
           },
         ]);
 
@@ -113,46 +382,45 @@ export default function AdminPage() {
 
       alert(error.message);
 
-    } else {
-
-      alert("Movie Added");
-
-      setTitle("");
-      setCategory("");
-      setThumbnail("");
-      setDriveLink("");
-      setSeason("");
-      setEpisode("");
-      setIsSeries(false);
-
-      fetchMovies();
-    }
-  };
-
-  // Delete Movie
-  const deleteMovie = async (
-    id: number
-  ) => {
-
-    const confirmDelete =
-      confirm(
-        "Delete this movie?"
-      );
-
-    if (!confirmDelete)
       return;
+    }
 
-    await supabase
-      .from("movies")
-      .delete()
-      .eq("id", id);
+    alert(
+      "Movie Added"
+    );
 
-    alert("Movie Deleted");
+    resetForm();
 
     fetchMovies();
   };
 
-  // Loading
+  // DELETE
+  const deleteMovie =
+    async (
+      id: number
+    ) => {
+
+      const confirmDelete =
+        confirm(
+          "Delete this movie?"
+        );
+
+      if (!confirmDelete)
+        return;
+
+      await supabase
+        .from("movies")
+        .delete()
+        .eq("id", id);
+
+      alert(
+        "Movie Deleted"
+      );
+
+      fetchMovies();
+    };
+
+  // LOADING
   if (loading) {
 
     return (
@@ -166,7 +434,7 @@ export default function AdminPage() {
     );
   }
 
-  // Unauthorized
+  // UNAUTHORIZED
   if (!authorized) {
 
     return (
@@ -198,10 +466,10 @@ export default function AdminPage() {
 
       <div className="max-w-7xl mx-auto">
 
-        {/* Form */}
+        {/* FORM */}
         <div className="bg-zinc-900 p-10 rounded-2xl border border-zinc-800 shadow-2xl">
 
-          {/* Heading */}
+          {/* HEADING */}
           <div className="text-center mb-10">
 
             <h1 className="text-5xl font-bold text-red-600 mb-4">
@@ -214,23 +482,85 @@ export default function AdminPage() {
 
           </div>
 
-          {/* Inputs */}
           <div className="space-y-6">
 
-            {/* Movie Name */}
-            <input
-              type="text"
-              placeholder="Movie / Series Title"
-              value={title}
+            {/* CREATE SERIES */}
+            <div className="bg-black p-6 rounded-2xl border border-zinc-800">
+
+              <h2 className="text-2xl font-bold mb-4">
+                📺 Create New Series
+              </h2>
+
+              <input
+                type="text"
+                placeholder="Series Title"
+                value={seriesTitle}
+                onChange={(e) =>
+                  setSeriesTitle(
+                    e.target.value
+                  )
+                }
+                className="w-full bg-zinc-900 p-4 rounded-xl outline-none border border-zinc-700 focus:border-red-600 transition"
+              />
+
+              <button
+                onClick={addSeries}
+                className="mt-4 bg-blue-600 px-6 py-3 rounded-xl hover:bg-blue-700 transition"
+              >
+                ➕ Add Series
+              </button>
+
+            </div>
+
+            {/* SELECT SERIES */}
+            <select
+              value={selectedSeries}
               onChange={(e) =>
-                setTitle(
+                setSelectedSeries(
                   e.target.value
                 )
               }
-              className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
-            />
+              className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition cursor-pointer"
+            >
 
-            {/* Category */}
+              <option value="">
+                Select Existing Series
+              </option>
+
+              {series.map(
+                (item) => (
+
+                  <option
+                    key={item.id}
+                    value={item.id}
+                  >
+                    {item.title}
+                  </option>
+
+                )
+              )}
+
+            </select>
+
+            {/* NORMAL MOVIE TITLE */}
+            {category !== "Web Series" &&
+              !selectedSeries && (
+
+              <input
+                type="text"
+                placeholder="Movie Title"
+                value={title}
+                onChange={(e) =>
+                  setTitle(
+                    e.target.value
+                  )
+                }
+                className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
+              />
+
+            )}
+
+            {/* CATEGORY */}
             <select
               value={category}
               onChange={(e) =>
@@ -263,28 +593,9 @@ export default function AdminPage() {
 
             </select>
 
-            {/* Web Series Toggle */}
-            <div className="flex items-center gap-4">
-
-              <input
-                type="checkbox"
-                checked={isSeries}
-                onChange={(e) =>
-                  setIsSeries(
-                    e.target.checked
-                  )
-                }
-                className="w-5 h-5"
-              />
-
-              <p className="text-gray-300">
-                This is a Web Series
-              </p>
-
-            </div>
-
-            {/* Season Episode */}
-            {isSeries && (
+            {/* SERIES INFO */}
+            {(selectedSeries ||
+              category === "Web Series") && (
 
               <div className="grid grid-cols-2 gap-4">
 
@@ -316,7 +627,7 @@ export default function AdminPage() {
 
             )}
 
-            {/* Thumbnail */}
+            {/* THUMBNAIL */}
             <input
               type="text"
               placeholder="Thumbnail URL"
@@ -329,7 +640,7 @@ export default function AdminPage() {
               className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
             />
 
-            {/* Drive Link */}
+            {/* LINK */}
             <input
               type="text"
               placeholder="Movie Link / YouTube Embed / Drive Preview"
@@ -342,19 +653,21 @@ export default function AdminPage() {
               className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
             />
 
-            {/* Publish */}
+            {/* BUTTON */}
             <button
               onClick={addMovie}
               className="w-full bg-red-600 py-4 rounded-xl text-xl font-semibold cursor-pointer hover:bg-red-700 transition duration-300"
             >
-              🎬 Publish
+              {editId
+                ? "✏ Update Movie"
+                : "🎬 Publish"}
             </button>
 
           </div>
 
         </div>
 
-        {/* Uploaded Movies */}
+        {/* MOVIES */}
         <div className="mt-14">
 
           <h2 className="text-4xl font-bold mb-8">
@@ -385,24 +698,35 @@ export default function AdminPage() {
                   <div className="p-4">
 
                     <h3 className="text-xl font-bold line-clamp-2">
-                      {
-                        movie.title
-                      }
+                      {movie.title}
                     </h3>
 
                     <p className="text-gray-400 mt-2">
-                      {
-                        movie.category
-                      }
+                      {movie.category}
                     </p>
 
+                    {movie.season && (
+                      <p className="text-sm text-red-500 mt-2">
+                        Season {movie.season} • Episode {movie.episode}
+                      </p>
+                    )}
+
+                    {/* EDIT */}
                     <button
                       onClick={() =>
-                        deleteMovie(
-                          movie.id
-                        )
+                        editMovie(movie)
                       }
-                      className="mt-4 w-full bg-red-600 py-3 rounded-xl hover:bg-red-700 transition cursor-pointer"
+                      className="mt-4 w-full bg-blue-600 py-3 rounded-xl hover:bg-blue-700 transition cursor-pointer"
+                    >
+                      ✏ Edit
+                    </button>
+
+                    {/* DELETE */}
+                    <button
+                      onClick={() =>
+                        deleteMovie(movie.id)
+                      }
+                      className="mt-3 w-full bg-red-600 py-3 rounded-xl hover:bg-red-700 transition cursor-pointer"
                     >
                       🗑 Delete
                     </button>

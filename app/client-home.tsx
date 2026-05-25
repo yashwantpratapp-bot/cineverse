@@ -6,8 +6,10 @@ import { supabase } from "@/lib/supabase";
 
 export default function ClientHome({
   movies,
+  series,
 }: {
   movies: any[];
+  series: any[];
 }) {
 
   const [search, setSearch] =
@@ -190,13 +192,6 @@ export default function ClientHome({
                     👍 Liked Movies
                   </Link>
 
-                  <Link
-                    href="/settings"
-                    className="block px-6 py-4 hover:bg-zinc-800 transition"
-                  >
-                    ⚙ Settings
-                  </Link>
-
                   <button
                     onClick={logout}
                     className="w-full text-left px-6 py-4 hover:bg-red-600 transition"
@@ -295,6 +290,68 @@ export default function ClientHome({
 
       </div>
 
+      {/* WEB SERIES */}
+      <div className="p-4 md:p-8">
+
+        <div className="flex items-center justify-between mb-8">
+
+          <h2 className="text-3xl font-bold">
+            📺 Web Series
+          </h2>
+
+          <p className="text-gray-400 text-sm">
+            {series.length} Series
+          </p>
+
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+
+          {series.map((item) => (
+
+            <Link
+              href={`/series/${item.id}`}
+              key={item.id}
+              className="bg-zinc-900 rounded-2xl overflow-hidden hover:scale-105 transition duration-300 block border border-zinc-800"
+            >
+
+              <img
+                src={
+                  item.thumbnail ||
+                  "https://via.placeholder.com/400x600?text=No+Image"
+                }
+                alt={item.title}
+                className="w-full h-72 object-cover"
+              />
+
+              <div className="p-4">
+
+                <h3 className="text-lg md:text-xl font-semibold">
+                  {item.title}
+                </h3>
+
+                <p className="text-gray-400 mt-2">
+                  📺 {item.category}
+                </p>
+
+                <div className="mt-4">
+
+                  <span className="bg-red-600 px-4 py-2 rounded-lg text-sm">
+                    Watch Series
+                  </span>
+
+                </div>
+
+              </div>
+
+            </Link>
+
+          ))}
+
+        </div>
+
+      </div>
+
       {/* Movies */}
       <div className="p-4 md:p-8">
 
@@ -307,8 +364,7 @@ export default function ClientHome({
           <p className="text-gray-400 text-sm">
             {
               filteredMovies.length
-            }{" "}
-            Movies
+            } Movies
           </p>
 
         </div>
@@ -345,7 +401,6 @@ export default function ClientHome({
                   }`}
                 >
 
-                  {/* Thumbnail */}
                   <div className="relative">
 
                     <img
@@ -365,7 +420,6 @@ export default function ClientHome({
 
                   </div>
 
-                  {/* Content */}
                   <div className="p-4">
 
                     <h3 className="text-lg md:text-xl font-semibold line-clamp-1">
@@ -373,8 +427,7 @@ export default function ClientHome({
                     </h3>
 
                     <p className="text-gray-400 mt-2">
-                      🎬{" "}
-                      {
+                      🎬 {
                         movie.category
                       }
                     </p>
@@ -382,10 +435,10 @@ export default function ClientHome({
                     <div className="flex items-center justify-between mt-3">
 
                       <p className="text-gray-500 text-sm">
-                        👁{" "}
-                        {movie.views ||
-                          0}{" "}
-                        views
+                        👁 {
+                          movie.views ||
+                          0
+                        } views
                       </p>
 
                       <div className="text-yellow-400 text-sm">
@@ -457,7 +510,6 @@ export default function ClientHome({
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
 
-            {/* Brand */}
             <div>
 
               <h1 className="text-4xl font-bold text-red-600 mb-4">
@@ -473,7 +525,6 @@ export default function ClientHome({
 
             </div>
 
-            {/* Navigation */}
             <div>
 
               <h2 className="text-xl font-semibold mb-5">
@@ -507,7 +558,6 @@ export default function ClientHome({
 
             </div>
 
-            {/* Categories */}
             <div>
 
               <h2 className="text-xl font-semibold mb-5">
@@ -536,7 +586,6 @@ export default function ClientHome({
 
             </div>
 
-            {/* Social */}
             <div>
 
               <h2 className="text-xl font-semibold mb-5">
@@ -563,7 +612,6 @@ export default function ClientHome({
 
           </div>
 
-          {/* Bottom */}
           <div className="border-t border-zinc-800 mt-12 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
 
             <p className="text-gray-500 text-sm">

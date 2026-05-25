@@ -8,11 +8,18 @@ export default async function Home() {
   const { data: movies, error } =
     await supabase
       .from("movies")
-      .select("*")
-      .order("views", {
-        ascending: false,
-      });
-
+.select("*")
+.is("series_id", null)
+.order("views", {
+  ascending: false,
+});
+const { data: series } =
+  await supabase
+    .from("series")
+    .select("*")
+    .order("id", {
+      ascending: false,
+    });
   if (error) {
 
     return (
@@ -27,6 +34,9 @@ export default async function Home() {
   }
 
   return (
-    <ClientHome movies={movies || []} />
+    <ClientHome
+  movies={movies || []}
+  series={series || []}
+/>
   );
 }
