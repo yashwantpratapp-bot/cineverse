@@ -29,6 +29,19 @@ export default function ClientHome({
   const [showMenu, setShowMenu] =
     useState(false);
 
+  // PAGINATION
+  const itemsPerPage = 8;
+
+  const [
+    moviePage,
+    setMoviePage,
+  ] = useState(1);
+
+  const [
+    seriesPage,
+    setSeriesPage,
+  ] = useState(1);
+
   useEffect(() => {
 
     checkUser();
@@ -75,6 +88,56 @@ export default function ClientHome({
       );
     });
 
+  // PAGINATION LOGIC
+const totalMoviePages =
+  Math.ceil(
+    filteredMovies.length /
+    itemsPerPage
+  );
+
+const paginatedMovies =
+  filteredMovies.slice(
+    (moviePage - 1) *
+      itemsPerPage,
+    moviePage *
+      itemsPerPage
+  );
+
+const filteredSeries =
+  series.filter((item) => {
+
+    const matchesSearch =
+      item.title
+        .toLowerCase()
+        .includes(
+          search.toLowerCase()
+        );
+
+    const matchesCategory =
+      selectedCategory ===
+        "All" ||
+      item.category ===
+        selectedCategory;
+
+    return (
+      matchesSearch &&
+      matchesCategory
+    );
+  });
+
+const totalSeriesPages =
+  Math.ceil(
+    filteredSeries.length /
+    itemsPerPage
+  );
+
+const paginatedSeries =
+  filteredSeries.slice(
+    (seriesPage - 1) *
+      itemsPerPage,
+    seriesPage *
+      itemsPerPage
+  );
   return (
     <main
       className={`min-h-screen transition duration-500 ${
@@ -85,8 +148,8 @@ export default function ClientHome({
     >
 
       {/* Navbar */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between px-4 md:px-8 py-4 bg-black sticky top-0 z-50 gap-4 border-b border-zinc-800">
 
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between px-4 md:px-8 py-4 bg-black sticky top-0 z-50 gap-4 border-b border-zinc-800">
         {/* Logo */}
         <h1 className="text-2xl md:text-3xl font-bold text-red-600 tracking-wide">
           CINEVERSE
@@ -98,7 +161,7 @@ export default function ClientHome({
           {/* Search */}
           <input
             type="text"
-            placeholder="Search movies..."
+            placeholder="Search "
             value={search}
             onChange={(e) =>
               setSearch(
@@ -305,9 +368,9 @@ export default function ClientHome({
 
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
 
-          {series.map((item) => (
+          {paginatedSeries.map((item) => (
 
             <Link
               href={`/series/${item.id}`}
@@ -334,14 +397,6 @@ export default function ClientHome({
                   📺 {item.category}
                 </p>
 
-                <div className="mt-4">
-
-                  <span className="bg-red-600 px-4 py-2 rounded-lg text-sm">
-                    Watch Series
-                  </span>
-
-                </div>
-
               </div>
 
             </Link>
@@ -350,9 +405,36 @@ export default function ClientHome({
 
         </div>
 
+        {/* SERIES PAGINATION */}
+        <div className="flex justify-center gap-4 mt-10">
+
+          <button
+            disabled={seriesPage === 1}
+            onClick={() =>
+              setSeriesPage(seriesPage - 1)
+            }
+            className="bg-zinc-800 px-6 py-3 rounded-xl disabled:opacity-40"
+          >
+            ⬅ Prev
+          </button>
+
+          <button
+            disabled={
+              seriesPage === totalSeriesPages
+            }
+            onClick={() =>
+              setSeriesPage(seriesPage + 1)
+            }
+            className="bg-red-600 px-6 py-3 rounded-xl disabled:opacity-40"
+          >
+            Next ➡
+          </button>
+
+        </div>
+
       </div>
 
-      {/* Movies */}
+      {/* MOVIES */}
       <div className="p-4 md:p-8">
 
         <div className="flex items-center justify-between mb-8">
@@ -362,138 +444,115 @@ export default function ClientHome({
           </h2>
 
           <p className="text-gray-400 text-sm">
-            {
-              filteredMovies.length
-            } Movies
+            {filteredMovies.length} Movies
           </p>
 
         </div>
 
-        {filteredMovies.length ===
-        0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-10 text-center">
+          {paginatedMovies.map(
+            (movie) => (
 
-            <h2 className="text-2xl font-bold mb-4">
-              No movies found
-            </h2>
+              <div
+                key={movie.id}
+                className={`rounded-2xl overflow-hidden hover:scale-105 transition duration-300 shadow-lg border ${
+                  darkMode
+                    ? "bg-zinc-900 border-zinc-800"
+                    : "bg-zinc-200 border-zinc-300"
+                }`}
+              >
 
-            <p className="text-gray-400">
-              Try another search
-              or category.
-            </p>
+                <div className="relative">
 
-          </div>
+                  <img
+                    src={
+                      movie.thumbnail ||
+                      "https://via.placeholder.com/400x600?text=No+Image"
+                    }
+                    alt={
+                      movie.title
+                    }
+                    className="w-full h-72 object-cover"
+                  />
 
-        ) : (
+                  <span className="absolute top-3 right-3 bg-red-600 text-white text-xs px-2 py-1 rounded-md">
+                    HD
+                  </span>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                </div>
 
-            {filteredMovies.map(
-              (movie) => (
+                <div className="p-4">
 
-                <div
-                  key={movie.id}
-                  className={`rounded-2xl overflow-hidden hover:scale-105 transition duration-300 shadow-lg border ${
-                    darkMode
-                      ? "bg-zinc-900 border-zinc-800"
-                      : "bg-zinc-200 border-zinc-300"
-                  }`}
-                >
+                  <h3 className="text-lg md:text-xl font-semibold line-clamp-1">
+                    {movie.title}
+                  </h3>
 
-                  <div className="relative">
+                  <p className="text-gray-400 mt-2">
+                    🎬 {movie.category}
+                  </p>
 
-                    <img
-                      src={
-                        movie.thumbnail ||
-                        "https://via.placeholder.com/400x600?text=No+Image"
+                  <div className="flex gap-2 mt-5">
+
+                    <Link
+                      href={`/movie/${movie.id}`}
+                      className="flex-1 bg-red-600 py-2 rounded-xl text-center cursor-pointer hover:bg-red-700 transition text-white font-medium"
+                    >
+                      ▶ Watch
+                    </Link>
+
+                    <a
+                      href={
+                        movie.drive_link
                       }
-                      alt={
-                        movie.title
-                      }
-                      className="w-full h-72 object-cover"
-                    />
-
-                    <span className="absolute top-3 right-3 bg-red-600 text-white text-xs px-2 py-1 rounded-md">
-                      HD
-                    </span>
-
-                  </div>
-
-                  <div className="p-4">
-
-                    <h3 className="text-lg md:text-xl font-semibold line-clamp-1">
-                      {movie.title}
-                    </h3>
-
-                    <p className="text-gray-400 mt-2">
-                      🎬 {
-                        movie.category
-                      }
-                    </p>
-
-                    <div className="flex items-center justify-between mt-3">
-
-                      <p className="text-gray-500 text-sm">
-                        👁 {
-                          movie.views ||
-                          0
-                        } views
-                      </p>
-
-                      <div className="text-yellow-400 text-sm">
-                        ⭐ 5.0
-                      </div>
-
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mt-4">
-
-                      <span className="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full">
-                        Trending
-                      </span>
-
-                      <span className="bg-zinc-800 text-gray-300 text-xs px-3 py-1 rounded-full">
-                        Fast Stream
-                      </span>
-
-                    </div>
-
-                    <div className="flex gap-2 mt-5">
-
-                      <Link
-                        href={`/movie/${movie.id}`}
-                        className="flex-1 bg-red-600 py-2 rounded-xl text-center cursor-pointer hover:bg-red-700 transition text-white font-medium"
-                      >
-                        ▶ Watch
-                      </Link>
-
-                      <a
-                        href={
-                          movie.drive_link
-                        }
-                        target="_blank"
-                        className={`flex-1 py-2 rounded-xl text-center cursor-pointer transition font-medium ${
-                          darkMode
-                            ? "bg-zinc-700 hover:bg-zinc-600 text-white"
-                            : "bg-zinc-400 hover:bg-zinc-500 text-black"
-                        }`}
-                      >
-                        ⬇ Download
-                      </a>
-
-                    </div>
+                      target="_blank"
+                      className={`flex-1 py-2 rounded-xl text-center cursor-pointer transition font-medium ${
+                        darkMode
+                          ? "bg-zinc-700 hover:bg-zinc-600 text-white"
+                          : "bg-zinc-400 hover:bg-zinc-500 text-black"
+                      }`}
+                    >
+                      ⬇ Download
+                    </a>
 
                   </div>
 
                 </div>
 
-              )
-            )}
+              </div>
 
-          </div>
+            )
+          )}
 
-        )}
+        </div>
+
+        {/* MOVIE PAGINATION */}
+        <div className="flex justify-center gap-4 mt-10">
+
+          <button
+            disabled={moviePage === 1}
+            onClick={() =>
+              setMoviePage(moviePage - 1)
+            }
+            className="bg-zinc-800 px-6 py-3 rounded-xl disabled:opacity-40"
+          >
+            ⬅ Prev
+          </button>
+
+          <button
+            disabled={
+              moviePage ===
+              totalMoviePages
+            }
+            onClick={() =>
+              setMoviePage(moviePage + 1)
+            }
+            className="bg-red-600 px-6 py-3 rounded-xl disabled:opacity-40"
+          >
+            Next ➡
+          </button>
+
+        </div>
 
       </div>
 
