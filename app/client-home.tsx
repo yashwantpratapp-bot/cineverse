@@ -28,7 +28,24 @@ export default function ClientHome({
 
   const [showMenu, setShowMenu] =
     useState(false);
+    const [notifications, setNotifications] =
+  useState<any[]>([]);
+  const unreadNotifications =
+  notifications.filter(
+    (item) => !item.seen
+  );
 
+const [showNotifications,
+  setShowNotifications] =
+  useState(false);
+const [showRequestBox, setShowRequestBox] =
+  useState(false);
+
+const [requestMovie, setRequestMovie] =
+  useState("");
+
+const [requestMessage, setRequestMessage] =
+  useState("");
   // PAGINATION
   const itemsPerPage = 8;
 
@@ -55,16 +72,68 @@ export default function ClientHome({
     } = await supabase.auth.getUser();
 
     setUser(user);
+    if (user) {
+
+  const { data } =
+    await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_email", user.email)
+      .order("created_at", {
+        ascending: false,
+      });
+
+  setNotifications(data || []);
+}
   };
 
   const logout = async () => {
 
-    await supabase.auth.signOut();
+  await supabase.auth.signOut();
 
-    alert("Logged out");
+  alert("Logged out");
 
-    window.location.reload();
-  };
+  window.location.reload();
+};
+
+const submitRequest = async () => {
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+
+    alert("Login first 😄");
+
+    return;
+  }
+
+  if (!requestMovie.trim()) {
+
+    alert("Enter movie name 😄");
+
+    return;
+  }
+
+  await supabase
+    .from("movie_requests")
+    .insert([
+      {
+        user_email: user.email,
+        movie_name: requestMovie,
+        message: requestMessage,
+      },
+    ]);
+
+  alert("Request submitted 😄🔥");
+
+  setRequestMovie("");
+
+  setRequestMessage("");
+
+  setShowRequestBox(false);
+};
 
   const filteredMovies =
     movies.filter((movie) => {
@@ -155,8 +224,8 @@ const paginatedSeries =
           CINEVERSE
         </h1>
 
-        {/* Right */}
-        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+       {/* Right */}
+<div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
 
           {/* Search */}
           <input
@@ -189,86 +258,197 @@ const paginatedSeries =
               : "🌙 Dark"}
           </button>
 
-          {/* User */}
-          {user ? (
+        
 
-            <div className="relative">
+           {/* User */}
+{user ? (
 
-              <button
-                onClick={() =>
-                  setShowMenu(
-                    !showMenu
-                  )
-                }
-                className="flex items-center gap-3 bg-zinc-900 px-4 py-2 rounded-xl border border-zinc-700 hover:bg-zinc-800 transition"
+  <div className="flex items-center gap-4">
+
+    {/* NOTIFICATION */}
+    <div className="relative">
+
+      <button
+       onClick={async () => {
+
+  setShowNotifications(
+    !showNotifications
+  );
+
+  if (!showNotifications) {
+
+    const unreadIds =
+      notifications
+        .filter(
+          (item) => !item.seen
+        )
+        .map(
+          (item) => item.id
+        );
+
+    if (
+      unreadIds.length > 0
+    ) {
+
+      await supabase
+        .from(
+          "notifications"
+        )
+        .update({
+          seen: true,
+        })
+        .in(
+          "id",
+          unreadIds
+        );
+
+      setNotifications(
+        (prev) =>
+          prev.map(
+            (item) => ({
+              ...item,
+              seen: true,
+            })
+          )
+      );
+    }
+  }
+}}
+        className="bg-zinc-900 w-12 h-12 rounded-full text-xl relative border border-zinc-700"
+      >
+        🔔
+
+        {unreadNotifications.length > 0 && (
+
+          <span className="absolute -top-1 -right-1 bg-red-600 text-xs w-5 h-5 rounded-full flex items-center justify-center">
+           {unreadNotifications.length}
+          </span>
+
+        )}
+
+      </button>
+
+      {showNotifications && (
+
+        <div className="absolute right-0 mt-4 w-96 bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden z-50 border border-zinc-800">
+
+          <div className="p-4 border-b border-zinc-800">
+
+            <h2 className="text-2xl font-bold">
+              🔔 Notifications
+            </h2>
+
+          </div>
+
+          <div className="max-h-[500px] overflow-y-auto">
+
+            {notifications.map((item) => (
+
+              <div
+                key={item.id}
+                className="p-4 border-b border-zinc-800"
               >
 
-                <img
-                  src={
-                    user
-                      ?.user_metadata
-                      ?.avatar_url ||
-                    "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                  }
-                  alt="Profile"
-                  className="w-10 h-10 rounded-full"
-                />
+                <h3 className="font-bold">
+                  {item.title}
+                </h3>
 
-                <span className="hidden md:block font-medium">
-                  {user
-                    ?.user_metadata
-                    ?.full_name ||
-                    "Profile"}
-                </span>
+                <p className="text-gray-400 mt-2">
+                  {item.message}
+                </p>
 
-              </button>
+              </div>
 
-              {showMenu && (
+            ))}
 
-                <div className="absolute right-0 mt-3 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-64 overflow-hidden z-50">
+          </div>
 
-                  <Link
-                    href="/profile"
-                    className="block px-6 py-4 hover:bg-zinc-800 transition"
-                  >
-                    👤 My Profile
-                  </Link>
+        </div>
 
-                  <Link
-                    href="/profile"
-                    className="block px-6 py-4 hover:bg-zinc-800 transition"
-                  >
-                    🕒 Watch History
-                  </Link>
+      )}
 
-                  <Link
-                    href="/profile"
-                    className="block px-6 py-4 hover:bg-zinc-800 transition"
-                  >
-                    ❤️ Watchlist
-                  </Link>
+    </div>
 
-                  <Link
-                    href="/profile"
-                    className="block px-6 py-4 hover:bg-zinc-800 transition"
-                  >
-                    👍 Liked Movies
-                  </Link>
+    {/* PROFILE */}
+    <div className="relative">
 
-                  <button
-                    onClick={logout}
-                    className="w-full text-left px-6 py-4 hover:bg-red-600 transition"
-                  >
-                    🚪 Logout
-                  </button>
+      <button
+        onClick={() =>
+          setShowMenu(
+            !showMenu
+          )
+        }
+        className="flex items-center gap-3 bg-zinc-900 px-4 py-2 rounded-xl border border-zinc-700 hover:bg-zinc-800 transition"
+      >
 
-                </div>
+        <img
+          src={
+            user
+              ?.user_metadata
+              ?.avatar_url ||
+            "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+          }
+          alt="Profile"
+          className="w-10 h-10 rounded-full"
+        />
 
-              )}
+        <span className="hidden md:block font-medium">
+          {user
+            ?.user_metadata
+            ?.full_name ||
+            "Profile"}
+        </span>
 
-            </div>
+      </button>
 
-          ) : (
+      {showMenu && (
+
+        <div className="absolute right-0 mt-3 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-64 overflow-hidden z-50">
+
+          <Link
+            href="/profile"
+            className="block px-6 py-4 hover:bg-zinc-800 transition"
+          >
+            👤 My Profile
+          </Link>
+
+          <Link
+            href="/profile"
+            className="block px-6 py-4 hover:bg-zinc-800 transition"
+          >
+            🕒 Watch History
+          </Link>
+
+          <Link
+            href="/profile"
+            className="block px-6 py-4 hover:bg-zinc-800 transition"
+          >
+            ❤️ Watchlist
+          </Link>
+
+          <Link
+            href="/profile"
+            className="block px-6 py-4 hover:bg-zinc-800 transition"
+          >
+            👍 Liked Movies
+          </Link>
+
+          <button
+            onClick={logout}
+            className="w-full text-left px-6 py-4 hover:bg-red-600 transition"
+          >
+            🚪 Logout
+          </button>
+
+        </div>
+
+      )}
+
+    </div>
+
+  </div>
+
+) : (
 
             <Link
               href="/login"
@@ -699,7 +879,60 @@ const paginatedSeries =
         </div>
 
       </footer>
+{/* Floating Request Button */}
 
+<div className="fixed bottom-6 right-6 z-50">
+
+  {showRequestBox && (
+
+    <div className="bg-zinc-900 w-80 p-6 rounded-2xl shadow-2xl mb-4 border border-zinc-800">
+
+      <h2 className="text-2xl font-bold mb-4">
+        🎬 Request Movie
+      </h2>
+
+      <input
+        type="text"
+        placeholder="Movie name"
+        value={requestMovie}
+        onChange={(e) =>
+          setRequestMovie(e.target.value)
+        }
+        className="w-full bg-black p-4 rounded-lg mb-4 outline-none"
+      />
+
+      <textarea
+        placeholder="Optional message"
+        value={requestMessage}
+        onChange={(e) =>
+          setRequestMessage(e.target.value)
+        }
+        className="w-full bg-black p-4 rounded-lg mb-4 min-h-[120px] outline-none"
+      />
+
+      <button
+        onClick={submitRequest}
+        className="w-full bg-red-600 py-3 rounded-lg"
+      >
+        Send Request
+      </button>
+
+    </div>
+
+  )}
+
+  <button
+    onClick={() =>
+      setShowRequestBox(
+        !showRequestBox
+      )
+    }
+    className="bg-red-600 w-16 h-16 rounded-full text-3xl shadow-2xl hover:scale-110 transition"
+  >
+    🎬
+  </button>
+
+</div>
     </main>
   );
 }

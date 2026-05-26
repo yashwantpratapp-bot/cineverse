@@ -4,66 +4,95 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function AdminPage() {
-  const [title, setTitle] = useState("");
 
-  const [category, setCategory] = useState("");
+  const [title, setTitle] =
+    useState("");
 
-  const [thumbnail, setThumbnail] = useState("");
+  const [category, setCategory] =
+    useState("");
 
-  const [driveLink, setDriveLink] = useState("");
+  const [thumbnail, setThumbnail] =
+    useState("");
 
-  const [movies, setMovies] = useState<any[]>([]);
+  const [driveLink, setDriveLink] =
+    useState("");
 
-  const [series, setSeries] = useState<any[]>([]);
+  const [movies, setMovies] =
+    useState<any[]>([]);
 
-  const [selectedSeries, setSelectedSeries] = useState("");
+  const [series, setSeries] =
+    useState<any[]>([]);
 
-  const [seriesTitle, setSeriesTitle] = useState("");
+  const [requests, setRequests] =
+    useState<any[]>([]);
 
-  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] =
+    useState("movies");
 
-  const [authorized, setAuthorized] = useState(false);
+  const [selectedSeries, setSelectedSeries] =
+    useState("");
 
-  // EDIT MODE
-  const [editId, setEditId] = useState<number | null>(null);
+  const [seriesTitle, setSeriesTitle] =
+    useState("");
 
-  // SERIES
-  const [season, setSeason] = useState("");
+  const [loading, setLoading] =
+    useState(true);
 
-  const [episode, setEpisode] = useState("");
+  const [authorized, setAuthorized] =
+    useState(false);
+
+  const [editId, setEditId] =
+    useState<number | null>(null);
+
+  const [season, setSeason] =
+    useState("");
+
+  const [episode, setEpisode] =
+    useState("");
 
   useEffect(() => {
+
     const checkAdmin = async () => {
+
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } =
+        await supabase.auth.getUser();
 
-      if (user?.email === "yashwantpratapp@gmail.com") {
+      if (
+        user?.email ===
+        "yashwantpratapp@gmail.com"
+      ) {
+
         setAuthorized(true);
 
         await fetchMovies();
 
         await fetchSeries();
+
+        await fetchRequests();
       }
 
       setLoading(false);
     };
 
     checkAdmin();
+
   }, []);
 
   // FETCH MOVIES
   const fetchMovies = async () => {
-    const { data, error } = await supabase
-      .from("movies")
-      .select("*")
-      .order("id", {
-        ascending: false,
-      });
+
+    const { data, error } =
+      await supabase
+        .from("movies")
+        .select("*")
+        .order("id", {
+          ascending: false,
+        });
 
     if (error) {
       console.log(error);
-
       return;
     }
 
@@ -72,58 +101,158 @@ export default function AdminPage() {
 
   // FETCH SERIES
   const fetchSeries = async () => {
-    const { data, error } = await supabase
-      .from("series")
-      .select("*")
-      .order("title", {
-        ascending: true,
-      });
 
-    console.log("SERIES DATA:", data);
-
-    console.log("SERIES ERROR:", error);
+    const { data, error } =
+      await supabase
+        .from("series")
+        .select("*")
+        .order("title", {
+          ascending: true,
+        });
 
     if (error) {
       console.log(error);
-
       return;
     }
 
     setSeries(data || []);
   };
 
+  // FETCH REQUESTS
+  const fetchRequests =
+    async () => {
+
+      const { data } =
+        await supabase
+          .from(
+            "movie_requests"
+          )
+          .select("*")
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            }
+          );
+
+      setRequests(
+        data || []
+      );
+    };
+
+  // UPDATE REQUEST
+  const updateRequestStatus =
+  async (
+    id: number,
+    status: string
+  ) => {
+
+    const request = requests.find(
+      (req) => req.id === id
+    );
+
+    // SEND NOTIFICATION
+    if (request) {
+await fetch("/api/send-email", {
+
+  method: "POST",
+
+  headers: {
+    "Content-Type":
+      "application/json",
+  },
+
+  body: JSON.stringify({
+
+    email: request.user_email,
+
+    title:
+      status === "approved"
+        ? "🎉 Request Approved"
+        : "❌ Request Declined",
+
+    message:
+      status === "approved"
+        ? `${request.movie_name} is now available on Cineverse 😄🔥`
+        : `${request.movie_name} request was declined 😔`,
+  }),
+});
+      await supabase
+        .from("notifications")
+        .insert([
+          {
+            user_email:
+              request.user_email,
+
+            title:
+              status === "approved"
+                ? "🎉 Request Approved"
+                : "❌ Request Declined",
+
+            message:
+              status === "approved"
+                ? `${request.movie_name} is now available 😄🔥`
+                : `${request.movie_name} request was declined`,
+          },
+        ]);
+    }
+
+    // DELETE REQUEST
+    await supabase
+      .from("movie_requests")
+      .delete()
+      .eq("id", id);
+
+    // REFRESH
+    fetchRequests();
+  };
+
   // ADD SERIES
   const addSeries = async () => {
-    if (!seriesTitle || !thumbnail || !category) {
-      alert("Fill all fields");
+
+    if (
+      !seriesTitle ||
+      !thumbnail ||
+      !category
+    ) {
+
+      alert(
+        "Fill all fields"
+      );
 
       return;
     }
 
-    const { data, error } = await supabase
+    const {
+      data,
+      error,
+    } = await supabase
       .from("series")
       .insert([
         {
-          title: seriesTitle,
+          title:
+            seriesTitle,
           thumbnail,
           category,
         },
       ])
       .select();
 
-    console.log(data);
-
-    console.log(error);
-
     if (error) {
+
       alert(error.message);
 
       return;
     }
 
-    alert("Series Added");
+    alert(
+      "Series Added"
+    );
 
-    setSelectedSeries(String(data[0].id));
+    setSelectedSeries(
+      String(data[0].id)
+    );
 
     setSeriesTitle("");
 
@@ -135,50 +264,44 @@ export default function AdminPage() {
   };
 
   // EDIT MOVIE
-  const editMovie = (movie: any) => {
+  const editMovie = (
+    movie: any
+  ) => {
+
     setEditId(movie.id);
 
     setTitle(movie.title);
 
     setCategory(movie.category);
 
-    setThumbnail(movie.thumbnail);
+    setThumbnail(
+      movie.thumbnail
+    );
 
-    setDriveLink(movie.drive_link);
+    setDriveLink(
+      movie.drive_link
+    );
 
-    setSeason(movie.season || "");
+    setSeason(
+      movie.season || ""
+    );
 
-    setEpisode(movie.episode || "");
+    setEpisode(
+      movie.episode || ""
+    );
 
-    setSelectedSeries(movie.series_id ? String(movie.series_id) : "");
+    setSelectedSeries(
+      movie.series_id
+        ? String(
+            movie.series_id
+          )
+        : ""
+    );
   };
-  // AUTO CONVERT LINK
-  const convertToPreviewLink = (url: string) => {
-    // YOUTUBE SHORT URL
-    if (url.includes("youtu.be/")) {
-      const videoId = url.split("youtu.be/")[1]?.split("?")[0];
 
-      return `https://www.youtube.com/embed/${videoId}`;
-    }
-
-    // YOUTUBE NORMAL URL
-    if (url.includes("youtube.com/watch?v=")) {
-      const videoId = url.split("v=")[1]?.split("&")[0];
-
-      return `https://www.youtube.com/embed/${videoId}`;
-    }
-
-    // GOOGLE DRIVE
-    if (url.includes("drive.google.com")) {
-      const fileId = url.split("/d/")[1]?.split("/")[0];
-
-      return `https://drive.google.com/file/d/${fileId}/preview`;
-    }
-
-    return url;
-  };
   // RESET
   const resetForm = () => {
+
     setEditId(null);
 
     setTitle("");
@@ -198,65 +321,114 @@ export default function AdminPage() {
 
   // ADD / UPDATE
   const addMovie = async () => {
-    if (!category || !thumbnail || !driveLink) {
-      alert("Fill all fields");
+
+    if (
+      !category ||
+      !thumbnail ||
+      !driveLink
+    ) {
+
+      alert(
+        "Fill all fields"
+      );
 
       return;
     }
 
-    let finalTitle = title;
-    const finalDriveLink = convertToPreviewLink(driveLink);
-    // SERIES MODE
-    if (selectedSeries) {
-      if (!season || !episode) {
-        alert("Add season and episode");
+    let finalTitle =
+      title;
+
+    if (
+      selectedSeries
+    ) {
+
+      if (
+        !season ||
+        !episode
+      ) {
+
+        alert(
+          "Add season and episode"
+        );
 
         return;
       }
 
-      const selected = series.find(
-        (item) => Number(item.id) === Number(selectedSeries),
-      );
+      const selected =
+        series.find(
+          (item) =>
+            Number(item.id) ===
+            Number(
+              selectedSeries
+            )
+        );
 
       if (!selected) {
-        alert("Series not found");
+
+        alert(
+          "Series not found"
+        );
 
         return;
       }
 
-      finalTitle = `${selected.title} - Season ${season} Episode ${episode}`;
+      finalTitle =
+        `${selected.title} - Season ${season} Episode ${episode}`;
     }
 
-    // NORMAL MOVIE
-    if (!selectedSeries && !title) {
-      alert("Enter movie title");
+    if (
+      !selectedSeries &&
+      !title
+    ) {
+
+      alert(
+        "Enter movie title"
+      );
 
       return;
     }
 
     // UPDATE
     if (editId) {
-      const { error } = await supabase
-        .from("movies")
-        .update({
-          title: finalTitle,
-          category,
-          thumbnail,
-          drive_link:
-  finalDriveLink,
-          season: season || null,
-          episode: episode || null,
-          series_id: selectedSeries ? Number(selectedSeries) : null,
-        })
-        .eq("id", editId);
+
+      const { error } =
+        await supabase
+          .from("movies")
+          .update({
+            title:
+              finalTitle,
+            category,
+            thumbnail,
+            drive_link:
+              driveLink,
+            season:
+              season || null,
+            episode:
+              episode || null,
+            series_id:
+              selectedSeries
+                ? Number(
+                    selectedSeries
+                  )
+                : null,
+          })
+          .eq(
+            "id",
+            editId
+          );
 
       if (error) {
-        alert(error.message);
+
+        alert(
+          error.message
+        );
 
         return;
       }
 
-      alert("Movie Updated");
+      alert(
+        "Movie Updated"
+      );
 
       resetForm();
 
@@ -266,26 +438,40 @@ export default function AdminPage() {
     }
 
     // ADD
-    const { error } = await supabase.from("movies").insert([
-      {
-        title: finalTitle,
-        category,
-        thumbnail,
-        drive_link:
-  finalDriveLink,
-        season: season || null,
-        episode: episode || null,
-        series_id: selectedSeries ? Number(selectedSeries) : null,
-      },
-    ]);
+    const { error } =
+      await supabase
+        .from("movies")
+        .insert([
+          {
+            title:
+              finalTitle,
+            category,
+            thumbnail,
+            drive_link:
+              driveLink,
+            season:
+              season || null,
+            episode:
+              episode || null,
+            series_id:
+              selectedSeries
+                ? Number(
+                    selectedSeries
+                  )
+                : null,
+          },
+        ]);
 
     if (error) {
+
       alert(error.message);
 
       return;
     }
 
-    alert("Movie Added");
+    alert(
+      "Movie Added"
+    );
 
     resetForm();
 
@@ -293,226 +479,370 @@ export default function AdminPage() {
   };
 
   // DELETE
-  const deleteMovie = async (id: number) => {
-    const confirmDelete = confirm("Delete this movie?");
+  const deleteMovie =
+    async (
+      id: number
+    ) => {
 
-    if (!confirmDelete) return;
+      const confirmDelete =
+        confirm(
+          "Delete this movie?"
+        );
 
-    await supabase.from("movies").delete().eq("id", id);
+      if (!confirmDelete)
+        return;
 
-    alert("Movie Deleted");
+      await supabase
+        .from("movies")
+        .delete()
+        .eq("id", id);
 
-    fetchMovies();
-  };
+      alert(
+        "Movie Deleted"
+      );
+
+      fetchMovies();
+    };
 
   // LOADING
   if (loading) {
+
     return (
       <main className="bg-black text-white min-h-screen flex items-center justify-center">
-        <h1 className="text-4xl font-bold animate-pulse">Loading...</h1>
+
+        <h1 className="text-4xl font-bold animate-pulse">
+          Loading...
+        </h1>
+
       </main>
     );
   }
 
   // UNAUTHORIZED
   if (!authorized) {
+
     return (
       <main className="bg-black text-white min-h-screen flex items-center justify-center px-4">
+
         <div className="bg-zinc-900 p-10 rounded-2xl text-center max-w-md w-full border border-red-600">
-          <h1 className="text-5xl mb-4">❌</h1>
+
+          <h1 className="text-5xl mb-4">
+            ❌
+          </h1>
 
           <h2 className="text-3xl font-bold text-red-600 mb-4">
             Access Denied
           </h2>
 
           <p className="text-gray-400 leading-7">
-            You are not authorized to access admin panel
+            You are not authorized
+            to access admin panel
           </p>
+
         </div>
+
       </main>
     );
   }
 
   return (
     <main className="bg-black min-h-screen text-white px-4 py-10">
+
       <div className="max-w-7xl mx-auto">
-        {/* FORM */}
-        <div className="bg-zinc-900 p-10 rounded-2xl border border-zinc-800 shadow-2xl">
-          {/* HEADING */}
-          <div className="text-center mb-10">
-            <h1 className="text-5xl font-bold text-red-600 mb-4">
-              CINEVERSE ADMIN
-            </h1>
 
-            <p className="text-gray-400">Upload and manage movies</p>
-          </div>
+        {/* TOP NAV */}
+        <div className="flex gap-4 mb-10">
 
-          <div className="space-y-6">
-            {/* CREATE SERIES */}
-            <div className="bg-black p-6 rounded-2xl border border-zinc-800">
-              <h2 className="text-2xl font-bold mb-4">📺 Create New Series</h2>
+          <button
+            onClick={() =>
+              setActiveTab(
+                "movies"
+              )
+            }
+            className={`px-6 py-3 rounded-xl font-bold transition ${
+              activeTab ===
+              "movies"
+                ? "bg-red-600"
+                : "bg-zinc-800"
+            }`}
+          >
+            🎬 Movies
+          </button>
 
-              <input
-                type="text"
-                placeholder="Series Title"
-                value={seriesTitle}
-                onChange={(e) => setSeriesTitle(e.target.value)}
-                className="w-full bg-zinc-900 p-4 rounded-xl outline-none border border-zinc-700 focus:border-red-600 transition"
-              />
+          <button
+            onClick={() =>
+              setActiveTab(
+                "requests"
+              )
+            }
+            className={`px-6 py-3 rounded-xl font-bold transition ${
+              activeTab ===
+              "requests"
+                ? "bg-red-600"
+                : "bg-zinc-800"
+            }`}
+          >
+            📩 Requests
+          </button>
 
-              <button
-                onClick={addSeries}
-                className="mt-4 bg-blue-600 px-6 py-3 rounded-xl hover:bg-blue-700 transition"
-              >
-                ➕ Add Series
-              </button>
+        </div>
+
+        {/* MOVIES TAB */}
+        {activeTab ===
+          "movies" && (
+
+          <>
+            {/* FORM */}
+            <div className="bg-zinc-900 p-10 rounded-2xl border border-zinc-800 shadow-2xl">
+
+              <div className="text-center mb-10">
+
+                <h1 className="text-5xl font-bold text-red-600 mb-4">
+                  CINEVERSE ADMIN
+                </h1>
+
+                <p className="text-gray-400">
+                  Upload and manage movies
+                </p>
+
+              </div>
+
+              <div className="space-y-6">
+
+                <div className="bg-black p-6 rounded-2xl border border-zinc-800">
+
+                  <h2 className="text-2xl font-bold mb-4">
+                    📺 Create New Series
+                  </h2>
+
+                  <input
+                    type="text"
+                    placeholder="Series Title"
+                    value={seriesTitle}
+                    onChange={(e) =>
+                      setSeriesTitle(
+                        e.target.value
+                      )
+                    }
+                    className="w-full bg-zinc-900 p-4 rounded-xl outline-none border border-zinc-700"
+                  />
+
+                  <button
+                    onClick={
+                      addSeries
+                    }
+                    className="mt-4 bg-blue-600 px-6 py-3 rounded-xl"
+                  >
+                    ➕ Add Series
+                  </button>
+
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="Movie Title"
+                  value={title}
+                  onChange={(e) =>
+                    setTitle(
+                      e.target.value
+                    )
+                  }
+                  className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800"
+                />
+
+                <input
+                  type="text"
+                  placeholder="Thumbnail URL"
+                  value={thumbnail}
+                  onChange={(e) =>
+                    setThumbnail(
+                      e.target.value
+                    )
+                  }
+                  className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800"
+                />
+
+                <input
+                  type="text"
+                  placeholder="Drive / Embed Link"
+                  value={driveLink}
+                  onChange={(e) =>
+                    setDriveLink(
+                      e.target.value
+                    )
+                  }
+                  className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800"
+                />
+
+                <button
+                  onClick={
+                    addMovie
+                  }
+                  className="w-full bg-red-600 py-4 rounded-xl text-xl font-semibold"
+                >
+                  {editId
+                    ? "✏ Update Movie"
+                    : "🎬 Publish"}
+                </button>
+
+              </div>
+
             </div>
 
-            {/* SELECT SERIES */}
-            <select
-              value={selectedSeries}
-              onChange={(e) => setSelectedSeries(e.target.value)}
-              className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition cursor-pointer"
-            >
-              <option value="">Select Existing Series</option>
+            {/* MOVIES */}
+            <div className="mt-14">
 
-              {series.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.title}
-                </option>
-              ))}
-            </select>
+              <h2 className="text-4xl font-bold mb-8">
+                Uploaded Movies
+              </h2>
 
-            {/* NORMAL MOVIE TITLE */}
-            {category !== "Web Series" && !selectedSeries && (
-              <input
-                type="text"
-                placeholder="Movie Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
-              />
-            )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
 
-            {/* CATEGORY */}
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition cursor-pointer"
-            >
-              <option value="">Select Category</option>
+                {movies.map(
+                  (movie) => (
 
-              <option value="Bollywood">Bollywood</option>
+                    <div
+                      key={movie.id}
+                      className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800"
+                    >
 
-              <option value="South Movies">South Movies</option>
+                      <img
+                        src={
+                          movie.thumbnail
+                        }
+                        alt={
+                          movie.title
+                        }
+                        className="w-full h-72 object-cover"
+                      />
 
-              <option value="Web Series">Web Series</option>
+                      <div className="p-4">
 
-              <option value="Anime">Anime</option>
-            </select>
+                        <h3 className="text-xl font-bold line-clamp-2">
+                          {movie.title}
+                        </h3>
 
-            {/* SERIES INFO */}
-            {(selectedSeries || category === "Web Series") && (
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Season"
-                  value={season}
-                  onChange={(e) => setSeason(e.target.value)}
-                  className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
-                />
+                        <p className="text-gray-400 mt-2">
+                          {movie.category}
+                        </p>
 
-                <input
-                  type="text"
-                  placeholder="Episode"
-                  value={episode}
-                  onChange={(e) => setEpisode(e.target.value)}
-                  className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
-                />
+                        <button
+                          onClick={() =>
+                            editMovie(
+                              movie
+                            )
+                          }
+                          className="mt-4 w-full bg-blue-600 py-3 rounded-xl"
+                        >
+                          ✏ Edit
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            deleteMovie(
+                              movie.id
+                            )
+                          }
+                          className="mt-3 w-full bg-red-600 py-3 rounded-xl"
+                        >
+                          🗑 Delete
+                        </button>
+
+                      </div>
+
+                    </div>
+
+                  )
+                )}
+
               </div>
-            )}
 
-            {/* THUMBNAIL */}
-            <input
-              type="text"
-              placeholder="Thumbnail URL"
-              value={thumbnail}
-              onChange={(e) => setThumbnail(e.target.value)}
-              className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
-            />
+            </div>
+          </>
 
-            {/* LINK */}
-            <input
-              type="text"
-              placeholder="Movie Link / YouTube Embed / Drive Preview"
-              value={driveLink}
-              onChange={(e) => setDriveLink(e.target.value)}
-              className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800 focus:border-red-600 transition"
-            />
+        )}
 
-            {/* BUTTON */}
-            <button
-              onClick={addMovie}
-              className="w-full bg-red-600 py-4 rounded-xl text-xl font-semibold cursor-pointer hover:bg-red-700 transition duration-300"
-            >
-              {editId ? "✏ Update Movie" : "🎬 Publish"}
-            </button>
-          </div>
-        </div>
+        {/* REQUESTS TAB */}
+        {activeTab ===
+          "requests" && (
 
-        {/* MOVIES */}
-        <div className="mt-14">
-          <h2 className="text-4xl font-bold mb-8">Uploaded Movies</h2>
+          <div className="mt-14">
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {movies.map((movie) => (
-              <div
-                key={movie.id}
-                className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 hover:scale-105 transition duration-300"
-              >
-                <img
-                  src={
-                    movie.thumbnail ||
-                    "https://via.placeholder.com/400x600?text=No+Image"
-                  }
-                  alt={movie.title}
-                  className="w-full h-72 object-cover"
-                />
+            <h2 className="text-4xl font-bold mb-8">
+              📩 Movie Requests
+            </h2>
 
-                <div className="p-4">
-                  <h3 className="text-xl font-bold line-clamp-2">
-                    {movie.title}
-                  </h3>
+            <div className="space-y-6">
 
-                  <p className="text-gray-400 mt-2">{movie.category}</p>
+              {requests.map(
+                (req) => (
 
-                  {movie.season && (
-                    <p className="text-sm text-red-500 mt-2">
-                      Season {movie.season} • Episode {movie.episode}
-                    </p>
-                  )}
-
-                  {/* EDIT */}
-                  <button
-                    onClick={() => editMovie(movie)}
-                    className="mt-4 w-full bg-blue-600 py-3 rounded-xl hover:bg-blue-700 transition cursor-pointer"
+                  <div
+                    key={req.id}
+                    className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800"
                   >
-                    ✏ Edit
-                  </button>
 
-                  {/* DELETE */}
-                  <button
-                    onClick={() => deleteMovie(movie.id)}
-                    className="mt-3 w-full bg-red-600 py-3 rounded-xl hover:bg-red-700 transition cursor-pointer"
-                  >
-                    🗑 Delete
-                  </button>
-                </div>
-              </div>
-            ))}
+                    <div className="flex justify-between items-start gap-6 flex-wrap">
+
+                      <div>
+
+                        <h3 className="text-2xl font-bold">
+                          {req.movie_name}
+                        </h3>
+
+                        <p className="text-gray-400 mt-2">
+                          {req.user_email}
+                        </p>
+
+                        <p className="text-gray-300 mt-4">
+                          {req.message}
+                        </p>
+
+                      </div>
+
+                      <div className="flex gap-4">
+
+                        <button
+                          onClick={() =>
+                            updateRequestStatus(
+                              req.id,
+                              "approved"
+                            )
+                          }
+                          className="bg-green-600 px-5 py-3 rounded-lg"
+                        >
+                          ✅ Approve
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            updateRequestStatus(
+                              req.id,
+                              "declined"
+                            )
+                          }
+                          className="bg-red-600 px-5 py-3 rounded-lg"
+                        >
+                          ❌ Decline
+                        </button>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                )
+              )}
+
+            </div>
+
           </div>
-        </div>
+
+        )}
+
       </div>
+
     </main>
   );
 }
