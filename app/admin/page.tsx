@@ -704,17 +704,120 @@ if (
 
                 </div>
 
-                <input
-                  type="text"
-                  placeholder="Movie Title"
-                  value={title}
-                  onChange={(e) =>
-                    setTitle(
-                      e.target.value
-                    )
-                  }
-                  className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800"
-                />
+                {/* CATEGORY */}
+<select
+  value={category}
+  onChange={(e) =>
+    setCategory(
+      e.target.value
+    )
+  }
+  className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800"
+>
+
+  <option value="">
+    Select Category
+  </option>
+
+  <option value="Bollywood">
+    Bollywood
+  </option>
+
+  <option value="South Movies">
+    South Movies
+  </option>
+
+  <option value="Web Series">
+    Web Series
+  </option>
+
+  <option value="Anime">
+    Anime
+  </option>
+
+</select>
+
+{/* SELECT SERIES */}
+{category === "Web Series" && (
+
+<select
+  value={selectedSeries}
+  onChange={(e) =>
+    setSelectedSeries(
+      e.target.value
+    )
+  }
+  className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800"
+>
+
+  <option value="">
+    Select Existing Series
+  </option>
+
+  {series.map((item) => (
+
+    <option
+      key={item.id}
+      value={item.id}
+    >
+      {item.title}
+    </option>
+
+  ))}
+
+</select>
+
+)}
+
+{/* SERIES INFO */}
+{category === "Web Series" && (
+
+<div className="grid grid-cols-2 gap-4">
+
+  <input
+    type="text"
+    placeholder="Season"
+    value={season}
+    onChange={(e) =>
+      setSeason(
+        e.target.value
+      )
+    }
+    className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800"
+  />
+
+  <input
+    type="text"
+    placeholder="Episode"
+    value={episode}
+    onChange={(e) =>
+      setEpisode(
+        e.target.value
+      )
+    }
+    className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800"
+  />
+
+</div>
+
+)}
+
+{/* NORMAL MOVIE TITLE */}
+{category !== "Web Series" && (
+
+<input
+  type="text"
+  placeholder="Movie Title"
+  value={title}
+  onChange={(e) =>
+    setTitle(
+      e.target.value
+    )
+  }
+  className="w-full bg-black p-4 rounded-xl outline-none border border-zinc-800"
+/>
+
+)}
 
                 <input
                   type="text"
