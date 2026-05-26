@@ -337,7 +337,73 @@ await fetch("/api/send-email", {
 
     let finalTitle =
       title;
+let finalDriveLink =
+  driveLink;
 
+// GOOGLE DRIVE AUTO PREVIEW
+if (
+  driveLink.includes(
+    "drive.google.com"
+  )
+) {
+
+  const match =
+    driveLink.match(
+      /\/d\/(.*?)\//
+    );
+
+  if (match?.[1]) {
+
+    finalDriveLink =
+      `https://drive.google.com/file/d/${match[1]}/preview`;
+  }
+}
+
+// YOUTUBE AUTO EMBED
+if (
+  driveLink.includes(
+    "youtube.com"
+  ) ||
+  driveLink.includes(
+    "youtu.be"
+  )
+) {
+
+  let videoId = "";
+
+  // SHORT URL
+  if (
+    driveLink.includes(
+      "youtu.be"
+    )
+  ) {
+
+    videoId =
+      driveLink
+        .split("/")
+        .pop()
+        ?.split("?")[0] || "";
+  }
+
+  // NORMAL URL
+  if (
+    driveLink.includes(
+      "watch?v="
+    )
+  ) {
+
+    videoId =
+      driveLink.split(
+        "watch?v="
+      )[1];
+
+    videoId =
+      videoId.split("&")[0];
+  }
+
+  finalDriveLink =
+    `https://www.youtube.com/embed/${videoId}`;
+}
     if (
       selectedSeries
     ) {
@@ -399,8 +465,8 @@ await fetch("/api/send-email", {
               finalTitle,
             category,
             thumbnail,
-            drive_link:
-              driveLink,
+           drive_link:
+  finalDriveLink,
             season:
               season || null,
             episode:
@@ -447,8 +513,8 @@ await fetch("/api/send-email", {
               finalTitle,
             category,
             thumbnail,
-            drive_link:
-              driveLink,
+           drive_link:
+  finalDriveLink,
             season:
               season || null,
             episode:
